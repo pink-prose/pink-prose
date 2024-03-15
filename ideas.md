@@ -1,6 +1,6 @@
 # ideas&trade;
 
-Loose idea document / very loose roadmap-ish of sorts.
+Loose idea document / very loose roadmap-ish of sorts
 
 ## Unsorted
 
@@ -67,3 +67,8 @@ everything goes
 - UI localisation
 - what should we do with approval
 - page to request new fandom creation, or maybe "application"
+- read history (private or public)
+- readlist
+- allow other authors to write prequels to a story
+  - "request sequel link", requesting original author to show the sequel on the story page
+  - but I think the link should be allowed anyways, it just wouldn't show up on original story's page without original permission, but the prequel story would show up on the sequel's page

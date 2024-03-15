@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = [
+	"packages/db"
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+
+[workspace.dependencies]
+serde = { version = "1.0.197", features = ["derive"] }

@@ -1,0 +1,64 @@
+all enums in rust code should have #[serde(rename = "M")] to guarantee backwards compat if things
+get renamed in code, and so we know what its storing as in the db
+
+todo: research graph db capabilities of surrealdb more
+
+table users
+	id: string
+	username: string
+	bio: option<string>
+	email: string
+	display_name: option<string>
+
+table stories
+	id: string
+	title: string
+	date_modified: date
+	date_published: option<date> // if not published, then none/null
+
+	cover: string // reference to stored somewhere else, need to figure out where that is
+	cover_loading_colour: int // probably int, then we convert to/from hex, pad to 6 chars
+
+	rating: string // yeet for now, no clue what it does
+	completion_status: string // enum in rust code (completed, in progress, etc)
+	content_rating: string // type? (enum in rust code)
+	ranking // overall raking on the site can it be derived?
+	word_ranking // same but with word count
+
+table chapters
+	id: string
+	title: string
+	content: string
+	views: int
+	authors_note_top: option<string>
+	authors_note_bottom: option<string>
+
+table bookshelves
+	id: string
+	name: string
+	icon: string
+	colour: string
+
+graph table user->author_of->story
+
+graph table chapter->is_chapter_of->story i think
+	chapter_num: int
+	published: bool
+
+graph table user->liked->story
+
+graph table user->disliked->story
+
+// todo should this be a field on bookshelves themself (record link)?
+graph table story->is_in_bookshelf->bookshelf
+
+graph tale story->is_sequel_of->story
+	approved_to_show_on_prequel: bool
+
+graph table user->following->user
+
+graph table user->comment_on->story // ????????????
+	content: string
+	timestamp: date
+
+graph table user->has_read->story
