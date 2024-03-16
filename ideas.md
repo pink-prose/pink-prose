@@ -12,6 +12,7 @@ everything goes
   - or you have to "context switch" between different fandoms to see their content?
   - admins of different fandoms can setup default available themes for the fandom
 - custom themes, and custom dark/light themes depending on device setting
+  - and fandom admins could make their own default theme / themes
 - need site moderators, I'd think these are per fandom/section
 - bans, per fandom/section, or sitewide?
 - omega customisable reader
@@ -28,6 +29,9 @@ everything goes
   - story owners can put who can edit their tags (only themself, certain people can suggest, or certain people can edit, public can suggest, or public can edit)
   - basically like, come up with some kind of search syntax
   - filters like derpi
+  - tags can be marked as spoiler tags when theyre added to a story, so they are hidden by default and not shown until the user chooses to show them
+  - select tags are hidden by default
+  - maturity rating keeps a seperate field, cause its easier to enforce the existence of than within a bunch of other tags
 - maturity rating system, similar if not same as fimfic (E, T, M)
   - this would probably go with the tagging system too, and its filters
 - likes/dislikes, with show/hide setting
@@ -72,3 +76,5 @@ everything goes
 - allow other authors to write prequels to a story
   - "request sequel link", requesting original author to show the sequel on the story page
   - but I think the link should be allowed anyways, it just wouldn't show up on original story's page without original permission, but the prequel story would show up on the sequel's page
+- like count public by default
+  - showing a specific user's stories that they liked, should be private by default
