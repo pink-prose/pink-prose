@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+	"packages/auth",
 	"packages/db"
 ]
 
@@ -11,3 +12,4 @@ license = "AGPL-3.0-only"
 
 [workspace.dependencies]
 serde = { version = "1.0.197", features = ["derive"] }
+thiserror = "1.0.58"

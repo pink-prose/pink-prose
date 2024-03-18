@@ -1,0 +1,16 @@
+[package]
+name = "nameplaceholder-auth"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+argon2 = { version = "0.5.3", features = [] }
+blake3 = "1.5.1"
+chacha20poly1305 = "0.10.1"
+getrandom = { version = "0.2.12", features = ["js"] }
+hex = "0.4.3"
+p384 = "0.13.0"
+rand = "0.8.5"
+thiserror.workspace = true
