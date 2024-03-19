@@ -27,7 +27,7 @@ impl Database {
 	}
 
 	pub async fn user__create(&self, opts: opts::UserCreate<'_>) -> Result {
-		self.db.query(include_str!("./queries/user__create.surrealql"))
+		self.db.query(include_str!("./queries/user__create.surql"))
 			.bind(opts)
 			.await?;
 		Ok(())
