@@ -1,13 +1,29 @@
+use ::argon2::PasswordHasher as _;
+
+// these are indeed supposed to be higher than default
+const ARGON2_M_COST: u32 = 0x8000;
+const ARGON2_T_COST: u32 = 4;
+const ARGON2_P_COST: u32 = 2;
+
+pub fn argon2() -> ::argon2::Argon2<'static> {
+	use ::argon2::{ Algorithm, ParamsBuilder, PasswordHasher, Version };
+	::argon2::Argon2::new(
+		Algorithm::Argon2id,
+		Version::default(),
+		ParamsBuilder::new()
+			.m_cost(ARGON2_M_COST)
+			.t_cost(ARGON2_T_COST)
+			.p_cost(ARGON2_P_COST)
+			.build()
+			.expect("invalid argon2 params")
+	)
+}
+
 pub mod signup {
 	use crate::{ Error, Result };
 	use super::*;
 	use ::p384::pkcs8::{ EncodePublicKey, EncodePrivateKey, DecodePublicKey, DecodePrivateKey, LineEnding::LF };
 	use ::rand::{ Rng, rngs::OsRng };
-
-	// these are indeed supposed to be higher than default
-	const ARGON2_M_COST: u32 = 0x8000;
-	const ARGON2_T_COST: u32 = 4;
-	const ARGON2_P_COST: u32 = 2;
 
 	pub struct PublicKey(::p384::PublicKey);
 	pub struct PrivateKey(::p384::SecretKey);
@@ -22,12 +38,12 @@ pub mod signup {
 			Self(private_key.0.public_key())
 		}
 
-		pub fn to_pem(&self) -> Result<String> {
+		pub fn to_string(&self) -> Result<String> {
 			Ok(self.0.to_public_key_pem(LF)?)
 		}
 
-		pub fn from_pem(pem: &str) -> Result<Self> {
-			Ok(Self(::p384::PublicKey::from_public_key_pem(pem)?))
+		pub fn from_string(s: &str) -> Result<Self> {
+			Ok(Self(::p384::PublicKey::from_public_key_pem(s)?))
 		}
 	}
 
@@ -36,12 +52,12 @@ pub mod signup {
 			Self(::p384::SecretKey::random(&mut OsRng))
 		}
 
-		pub fn to_pem(&self) -> Result<String> {
+		pub fn to_string(&self) -> Result<String> {
 			Ok((**self.0.to_pkcs8_pem(LF)?).into())
 		}
 
-		pub fn from_pem(pem: &str) -> Result<Self> {
-			Ok(Self(::p384::SecretKey::from_pkcs8_pem(pem)?))
+		pub fn from_string(s: &str) -> Result<Self> {
+			Ok(Self(::p384::SecretKey::from_pkcs8_pem(s)?))
 		}
 	}
 
@@ -63,25 +79,17 @@ pub mod signup {
 			OsRng.fill(mut_buf);
 			Self(buf)
 		}
+
+		pub fn to_string(&self) -> String {
+			::hex::encode(&self.0 as &[u8])
+		}
 	}
 
 	pub struct PasswordKey([u8; 32]);
 
 	impl PasswordKey {
 		pub fn from_password_and_salt(password: &str, salt: &Salt) -> Result<Self> {
-			use ::argon2::{ Algorithm, ParamsBuilder, PasswordHasher, Version };
-
-			let hasher = ::argon2::Argon2::new(
-				Algorithm::Argon2id,
-				Version::default(),
-				ParamsBuilder::new()
-					.m_cost(ARGON2_M_COST)
-					.t_cost(ARGON2_T_COST)
-					.p_cost(ARGON2_P_COST)
-					.build()
-					.expect("invalid argon2 params")
-			);
-
+			let hasher = argon2();
 			let mut out = [0u8; 32];
 			hasher.hash_password_into(password.as_bytes(), &salt.0, &mut out)?;
 			Ok(Self(out))
@@ -94,6 +102,17 @@ pub mod signup {
 		pub fn from_password_key(pw_key: &PasswordKey) -> Self {
 			let hash = *::blake3::hash(&pw_key.0).as_bytes();
 			Self(hash)
+		}
+
+		pub fn from_string(s: &str) -> Result<Self> {
+			let pv = ::hex::decode(s.as_bytes())?
+				.try_into()
+				.map_err(Error::TryIntoArray)?;
+			Ok(Self(pv))
+		}
+
+		pub fn to_string(&self) -> String {
+			::hex::encode(&self.0 as &[u8])
 		}
 	}
 
@@ -108,10 +127,29 @@ pub mod signup {
 			let cipher = ChaCha20Poly1305::new(&key);
 			let nonce = Nonce::from([0u8; 12]);
 
-			let pem = private_key.to_pem()?;
+			let pem = private_key.to_string()?;
 			let encrypted = cipher.encrypt(&nonce, pem.as_bytes())?;
 			let encrypted_hex = ::hex::encode(&*encrypted);
 			Ok(Self(encrypted_hex))
+		}
+
+		pub fn into_string(self) -> String {
+			self.0
+		}
+	}
+
+	pub struct HashedPasswordVerifier([u8; 32]);
+
+	impl HashedPasswordVerifier {
+		pub fn from_password_verifier(password_verifier: &PasswordVerifier, salt: &Salt) -> Result<Self> {
+			let hasher = argon2();
+			let mut out = [0u8; 32];
+			hasher.hash_password_into(&password_verifier.0, &salt.0, &mut out)?;
+			Ok(Self(out))
+		}
+
+		pub fn to_string(&self) -> String {
+			::hex::encode(&self.0 as &[u8])
 		}
 	}
 }

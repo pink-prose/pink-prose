@@ -5,22 +5,26 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 #[derive(Debug, Error)]
 pub enum Error {
 	#[error("{0}")]
-	AeadError(::chacha20poly1305::aead::Error),
+	Aead(::chacha20poly1305::aead::Error),
 	#[error("{0}")]
-	Argon2Error(::argon2::Error),
+	Argon2(::argon2::Error),
 	#[error(transparent)]
-	P384SPKIError(#[from] ::p384::pkcs8::spki::Error),
+	Hex(#[from] ::hex::FromHexError),
 	#[error(transparent)]
-	P384Error(#[from] ::p384::pkcs8::Error)
+	P384SPKI(#[from] ::p384::pkcs8::spki::Error),
+	#[error(transparent)]
+	P384(#[from] ::p384::pkcs8::Error),
+	#[error("failed to convert to fixed size array")]
+	TryIntoArray(Vec<u8>)
 }
 
 impl From<::argon2::Error> for Error {
 	fn from(error: ::argon2::Error) -> Self {
-		Self::Argon2Error(error)
+		Self::Argon2(error)
 	}
 }
 impl From<::chacha20poly1305::aead::Error> for Error {
 	fn from(error: ::chacha20poly1305::aead::Error) -> Self {
-		Self::AeadError(error)
+		Self::Aead(error)
 	}
 }
