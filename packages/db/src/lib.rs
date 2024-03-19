@@ -26,8 +26,14 @@ impl Database {
 		Ok(Self { db })
 	}
 
+	pub async fn define_tables_unstable(&self) -> Result {
+		self.db.query(query!("define_tables"))
+			.await?;
+		Ok(())
+	}
+
 	pub async fn user__create(&self, opts: opts::UserCreate<'_>) -> Result {
-		self.db.query(include_str!("./queries/user__create.surql"))
+		self.db.query(query!("user__create"))
 			.bind(opts)
 			.await?;
 		Ok(())
@@ -98,3 +104,12 @@ pub mod opts {
 		pub username: &'h str
 	}
 }
+
+/// prefixes paths to the queries dir and adds file extension too,
+/// to save typing
+macro_rules! query {
+	($str:literal) => {
+		include_str!(concat!("./queries/", $str, ".surql"))
+	}
+}
+use query;
