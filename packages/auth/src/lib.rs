@@ -3,5 +3,7 @@
 
 pub mod client;
 pub mod server;
-// pub mod shared_types;
-// mod util;
+pub mod error;
+mod util;
+
+pub use self::error::*;
