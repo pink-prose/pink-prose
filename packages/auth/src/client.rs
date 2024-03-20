@@ -29,40 +29,40 @@ pub trait ClientSignup: Sized {
 	}
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_signup<C: ClientSignup>(mut client: C) -> Result<(), C::Error> {
+			let email = client.get_user_email().await?;
+			let password = client.get_user_password().await?;
+			let extra_data = client.get_user_extra_data().await?;
+
+			client.process_extra_data_pre(&extra_data).await?;
+
+			let Keypair { public_key, private_key } = Keypair::generate();
+			let salt = Salt::generate();
+
+			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
+			let password_verifier = PasswordVerifier::from_password_key(&password_key);
+			let encrypted_private_key = EncryptedPrivateKey::from_private_key_and_password_key(
+				&private_key,
+				&password_key
+			)?;
+
+			let signup_data = SignupData {
+				email,
+				salt,
+				password_verifier,
+				public_key,
+				encrypted_private_key,
+				extra_data
+			};
+
+			client.send_signup_to_server(&signup_data).await?;
+
+			client.finalise_signup().await?;
+			Ok(())
+		}
+
 		SealedFutureImpl::new(self, run_signup)
 	}
-}
-
-async fn run_signup<C: ClientSignup>(mut client: C) -> Result<(), C::Error> {
-	let email = client.get_user_email().await?;
-	let password = client.get_user_password().await?;
-	let extra_data = client.get_user_extra_data().await?;
-
-	client.process_extra_data_pre(&extra_data).await?;
-
-	let Keypair { public_key, private_key } = Keypair::generate();
-	let salt = Salt::generate();
-
-	let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
-	let password_verifier = PasswordVerifier::from_password_key(&password_key);
-	let encrypted_private_key = EncryptedPrivateKey::from_private_key_and_password_key(
-		&private_key,
-		&password_key
-	)?;
-
-	let signup_data = SignupData {
-		email,
-		salt,
-		password_verifier,
-		public_key,
-		encrypted_private_key,
-		extra_data
-	};
-
-	client.send_signup_to_server(&signup_data).await?;
-
-	client.finalise_signup().await?;
-	Ok(())
 }
 
 pub trait ClientRequestEmail: Sized {
@@ -72,12 +72,12 @@ pub trait ClientRequestEmail: Sized {
 	fn send_email_to_server(&mut self, email: &Email) -> impl Future<Output = Result<(), Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_request_email<C: ClientRequestEmail>(mut client: C) -> Result<(), C::Error> {
+			let email = client.get_user_email().await?;
+			client.send_email_to_server(&email).await?;
+			Ok(())
+		}
+
 		SealedFutureImpl::new(self, run_request_email)
 	}
-}
-
-async fn run_request_email<C: ClientRequestEmail>(mut client: C) -> Result<(), C::Error> {
-	let email = client.get_user_email().await?;
-	client.send_email_to_server(&email).await?;
-	Ok(())
 }

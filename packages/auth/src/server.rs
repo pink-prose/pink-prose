@@ -32,45 +32,46 @@ pub trait ServerSignup: Sized {
 	}
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_signup<S: ServerSignup>(mut server: S) -> Result<(), S::Error> {
+			let SignupData {
+				email,
+				salt,
+				password_verifier,
+				public_key,
+				encrypted_private_key,
+				extra_data
+			} = server.receive_signup_from_client().await?;
+
+			server.process_extra_data_pre(&extra_data).await?;
+			server.ensure_email_unique_and_reserve(email.as_str()).await?;
+
+			let verifier_salt = Salt::generate();
+			let hashed_password_verifier = HashedPasswordVerifier::from_password_verifier_and_salt(&password_verifier, &salt)?;
+
+			let email_verification_token = server.generate_email_verification_token(email.as_str()).await?;
+
+			let data = StoredSignupData {
+				email,
+				salt,
+				hashed_password_verifier,
+				verifier_salt,
+				public_key,
+				encrypted_private_key,
+				email_verification_token,
+				extra_data
+			};
+			server.store_unverified_user_data(&data).await?;
+
+			server.send_verification(&data.email, &data.email_verification_token).await?;
+
+			server.finalise_signup().await?;
+			Ok(())
+		}
+
 		SealedFutureImpl::new(self, run_signup)
 	}
 }
 
-async fn run_signup<S: ServerSignup>(mut server: S) -> Result<(), S::Error> {
-	let SignupData {
-		email,
-		salt,
-		password_verifier,
-		public_key,
-		encrypted_private_key,
-		extra_data
-	} = server.receive_signup_from_client().await?;
-
-	server.process_extra_data_pre(&extra_data).await?;
-	server.ensure_email_unique_and_reserve(email.as_str()).await?;
-
-	let verifier_salt = Salt::generate();
-	let hashed_password_verifier = HashedPasswordVerifier::from_password_verifier_and_salt(&password_verifier, &salt)?;
-
-	let email_verification_token = server.generate_email_verification_token(email.as_str()).await?;
-
-	let data = StoredSignupData {
-		email,
-		salt,
-		hashed_password_verifier,
-		verifier_salt,
-		public_key,
-		encrypted_private_key,
-		email_verification_token,
-		extra_data
-	};
-	server.store_unverified_user_data(&data).await?;
-
-	server.send_verification(&data.email, &data.email_verification_token).await?;
-
-	server.finalise_signup().await?;
-	Ok(())
-}
 
 pub trait ServerRequestEmail: Sized {
 	type Error: From<crate::Error>;
@@ -87,29 +88,29 @@ pub trait ServerRequestEmail: Sized {
 	}
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_request_email<S: ServerRequestEmail>(mut server: S) -> Result<(), S::Error> {
+			let email = server.receive_email_from_client().await?;
+
+			// if statement is not collapsed for clarity reasons
+			#[allow(clippy::collapsible_if)]
+			if !server.check_email_in_verified().await? {
+				if !server.check_email_in_unverified().await? {
+					// silent early bail
+
+					server.finalise_email_request(false).await?;
+					return Ok(());
+				}
+			}
+
+			// email is indeed in db, send and store
+			let email_verification_token = server.generate_email_verification_token(email.as_str()).await?;
+			server.store_email_verification_token(email.as_str(), &email_verification_token).await?;
+			server.send_verification(email.as_str(), &email_verification_token).await?;
+
+			server.finalise_email_request(true).await?;
+			todo!()
+		}
+
 		SealedFutureImpl::new(self, run_request_email)
 	}
-}
-
-async fn run_request_email<S: ServerRequestEmail>(mut server: S) -> Result<(), S::Error> {
-	let email = server.receive_email_from_client().await?;
-
-	// if statement is not collapsed for clarity reasons
-	#[allow(clippy::collapsible_if)]
-	if !server.check_email_in_verified().await? {
-		if !server.check_email_in_unverified().await? {
-			// silent early bail
-
-			server.finalise_email_request(false).await?;
-			return Ok(());
-		}
-	}
-
-	// email is indeed in db, send and store
-	let email_verification_token = server.generate_email_verification_token(email.as_str()).await?;
-	server.store_email_verification_token(email.as_str(), &email_verification_token).await?;
-	server.send_verification(email.as_str(), &email_verification_token).await?;
-
-	server.finalise_email_request(true).await?;
-	todo!()
 }
