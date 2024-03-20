@@ -8,22 +8,20 @@ use super::{
 	Salt
 };
 
-pub struct SignupData<T> {
+pub struct SignupData {
 	pub email: Email,
 	pub salt: Salt,
 	pub password_verifier: PasswordVerifier,
 	pub public_key: PublicKey,
-	pub encrypted_private_key: EncryptedPrivateKey,
-	pub extra_data: T
+	pub encrypted_private_key: EncryptedPrivateKey
 }
 
-pub struct StoredSignupData<T> {
+pub struct StoredSignupData {
 	pub email: Email,
 	pub salt: Salt,
 	pub hashed_password_verifier: HashedPasswordVerifier,
 	pub verifier_salt: Salt,
 	pub public_key: PublicKey,
 	pub encrypted_private_key: EncryptedPrivateKey,
-	pub email_verification_token: EmailVerificationToken,
-	pub extra_data: T
+	pub email_verification_token: EmailVerificationToken
 }
