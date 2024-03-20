@@ -1,3 +1,4 @@
+use crate::error::*;
 use super::{ Blake3, PasswordKey };
 
 pub struct PasswordVerifier(Blake3);
@@ -14,5 +15,13 @@ impl PasswordVerifier {
 
 	pub fn to_string(&self) -> String {
 		self.0.to_string()
+	}
+
+	pub fn from_str(s: &str) -> Result<Self> {
+		Ok(Self(Blake3::from_str(s)?))
+	}
+
+	pub fn as_bytes(&self) -> &[u8; 32] {
+		self.0.as_bytes()
 	}
 }

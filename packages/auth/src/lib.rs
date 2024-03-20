@@ -12,6 +12,6 @@ mod server;
 
 mod error;
 mod sealed_future;
-mod structs;
+pub mod structs;
 
 pub use crate::error::Error;

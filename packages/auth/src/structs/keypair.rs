@@ -67,4 +67,8 @@ impl EncryptedPrivateKey {
 	pub fn to_string(&self) -> String {
 		self.0.to_string()
 	}
+
+	pub fn from_str(s: &str) -> Result<Self> {
+		Ok(Self(ChaCha20Poly1305::from_str(s)?))
+	}
 }

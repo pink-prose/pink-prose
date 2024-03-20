@@ -9,9 +9,13 @@ pub enum Error {
 	#[error("{0}")]
 	Argon2(::argon2::Error),
 	#[error(transparent)]
+	Hex(#[from] ::hex::FromHexError),
+	#[error(transparent)]
 	P384PKCS8SPKI(#[from] ::p384::pkcs8::spki::Error),
 	#[error(transparent)]
 	P384PKCS8(#[from] ::p384::pkcs8::Error),
+	#[error("failed to convert to fixed size array")]
+	TryIntoArray
 }
 
 impl From<::chacha20poly1305::aead::Error> for Error {

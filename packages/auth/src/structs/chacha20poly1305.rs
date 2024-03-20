@@ -21,4 +21,9 @@ impl ChaCha20Poly1305 {
 	pub fn to_string(&self) -> String {
 		::hex::encode(&*self.0)
 	}
+
+	pub fn from_str(s: &str) -> Result<Self> {
+		let decoded = ::hex::decode(s.as_bytes())?;
+		Ok(Self(decoded))
+	}
 }

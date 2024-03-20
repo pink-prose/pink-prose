@@ -29,14 +29,14 @@ impl Argon2 {
 	}
 
 	pub fn hash_and_salt(
-		password: &Password,
+		password: &[u8],
 		salt: &Salt
 	) -> Result<Self> {
 		let hasher = Self::new_hasher()?;
 		let mut bytes = [0u8; Self::OUT_BYTES];
 
 		hasher.hash_password_into(
-			password.as_bytes(),
+			password,
 			salt.as_bytes(),
 			&mut bytes
 		)?;
@@ -53,4 +53,12 @@ impl Argon2 {
 	pub fn as_bytes(&self) -> &[u8; Self::OUT_BYTES] {
 		&self.bytes
 	}
+
+	pub fn to_string(&self) -> String {
+		let hex = ::hex::encode(&self.bytes as &[u8]);
+		let Self { m_cost, t_cost, p_cost, output_len, .. } = self;
+		format!("{m_cost}-{t_cost}-{p_cost}-{output_len}-{hex}")
+	}
+
+	// pub fn from_str(s: &str) -> Result<Self> {}
 }

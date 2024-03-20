@@ -5,7 +5,7 @@ pub struct PasswordKey(Argon2);
 
 impl PasswordKey {
 	pub fn from_pw_and_salt(password: &Password, salt: &Salt) -> Result<Self> {
-		let hash = Argon2::hash_and_salt(password, salt)?;
+		let hash = Argon2::hash_and_salt(password.as_bytes(), salt)?;
 		Ok(Self(hash))
 	}
 
