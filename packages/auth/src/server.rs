@@ -126,48 +126,48 @@ pub trait ServerSignup: Sized {
 	}
 }
 
-pub trait ServerRequestVerificationEmail: Sized {
-	type Error: From<crate::Error>;
-	type ExtraData;
+// pub trait ServerRequestVerificationEmail: Sized {
+// 	type Error: From<crate::Error>;
+// 	type ExtraData;
 
-	fn receive_request(&mut self) -> impl Future<Output = Result<(Email, Self::ExtraData), Self::Error>>;
-	fn process_extra_data_pre(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
-	fn check_email_in_unverified(&mut self, email: &str) -> impl Future<Output = Result<bool, Self::Error>>;
-	// TODO: should email type in following fns be `&Email`?
-	fn store_email_verification_token(&mut self, email: &str, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
-	fn send_verification(&mut self, email: &str, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
-	fn finalise(self, sent: bool) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+// 	fn receive_request(&mut self) -> impl Future<Output = Result<(Email, Self::ExtraData), Self::Error>>;
+// 	fn process_extra_data_pre(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+// 		async { Ok(()) }
+// 	}
+// 	fn check_email_in_unverified(&mut self, email: &str) -> impl Future<Output = Result<bool, Self::Error>>;
+// 	// TODO: should email type in following fns be `&Email`?
+// 	fn store_email_verification_token(&mut self, email: &str, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
+// 	fn send_verification(&mut self, email: &str, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
+// 	fn finalise(self, sent: bool) -> impl Future<Output = Result<(), Self::Error>> {
+// 		async { Ok(()) }
+// 	}
 
-	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-		async fn run_request_verification_email<S: ServerRequestVerificationEmail>(
-			mut server: S
-		) -> Result<(), S::Error> {
-			let (email, extra_data) = server.receive_request().await?;
+// 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+// 		async fn run_request_verification_email<S: ServerRequestVerificationEmail>(
+// 			mut server: S
+// 		) -> Result<(), S::Error> {
+// 			let (email, extra_data) = server.receive_request().await?;
 
-			server.process_extra_data_pre(&extra_data).await?;
+// 			server.process_extra_data_pre(&extra_data).await?;
 
-			if !server.check_email_in_unverified(email.as_str()).await? {
-				// silent early bail
-				server.finalise(false).await?;
-				return Ok(());
-			}
+// 			if !server.check_email_in_unverified(email.as_str()).await? {
+// 				// silent early bail
+// 				server.finalise(false).await?;
+// 				return Ok(());
+// 			}
 
-			// email is indeed in db, send and store
-			let email_verification_token = EmailVerificationToken::generate();
-			server.store_email_verification_token(email.as_str(), &email_verification_token).await?;
-			server.send_verification(email.as_str(), &email_verification_token).await?;
+// 			// email is indeed in db, send and store
+// 			let email_verification_token = EmailVerificationToken::generate();
+// 			server.store_email_verification_token(email.as_str(), &email_verification_token).await?;
+// 			server.send_verification(email.as_str(), &email_verification_token).await?;
 
-			server.finalise(true).await?;
-			Ok(())
-		}
+// 			server.finalise(true).await?;
+// 			Ok(())
+// 		}
 
-		SealedFutureImpl::new(self, run_request_verification_email)
-	}
-}
+// 		SealedFutureImpl::new(self, run_request_verification_email)
+// 	}
+// }
 
 // pub trait ServerRequestPasswordReset: Sized {
 // 	type Error: From<crate::Error>;

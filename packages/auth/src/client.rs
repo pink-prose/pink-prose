@@ -94,33 +94,33 @@ pub trait ClientSignup: Sized {
 	}
 }
 
-pub trait ClientRequestVerificationEmail: Sized {
-	type Error: From<crate::Error>;
-	type ExtraData;
+// pub trait ClientRequestVerificationEmail: Sized {
+// 	type Error: From<crate::Error>;
+// 	type ExtraData;
 
-	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-	fn get_user_extra_data(&mut self) -> impl Future<Output = Result<Self::ExtraData, Self::Error>>;
-	fn submit_request(&mut self, email: &Email, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
-	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+// 	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
+// 	fn get_user_extra_data(&mut self) -> impl Future<Output = Result<Self::ExtraData, Self::Error>>;
+// 	fn submit_request(&mut self, email: &Email, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+// 	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
+// 		async { Ok(()) }
+// 	}
 
-	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-		async fn run_request_verification_email<C: ClientRequestVerificationEmail>(
-			mut client: C
-		) -> Result<(), C::Error> {
-			let email = client.get_user_email().await?;
-			let extra_data = client.get_user_extra_data().await?;
+// 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+// 		async fn run_request_verification_email<C: ClientRequestVerificationEmail>(
+// 			mut client: C
+// 		) -> Result<(), C::Error> {
+// 			let email = client.get_user_email().await?;
+// 			let extra_data = client.get_user_extra_data().await?;
 
-			client.submit_request(&email, &extra_data).await?;
+// 			client.submit_request(&email, &extra_data).await?;
 
-			client.finalise().await?;
-			Ok(())
-		}
+// 			client.finalise().await?;
+// 			Ok(())
+// 		}
 
-		SealedFutureImpl::new(self, run_request_verification_email)
-	}
-}
+// 		SealedFutureImpl::new(self, run_request_verification_email)
+// 	}
+// }
 
 // pub trait ClientRequestPasswordReset: Sized {
 // 	type Error: From<crate::Error>;
