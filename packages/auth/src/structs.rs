@@ -41,7 +41,7 @@ pub mod signin_s1;
 pub use self::signin_s1::{ SigninS1Request, SigninS1Response, SigninS1InProgress };
 
 pub mod signup;
-pub use self::signup::{ SignupData, StoredSignupData };
+pub use self::signup::{ SignupData, SignupForm, StoredSignupData };
 
 use crate::error::Result;
 

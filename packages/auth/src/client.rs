@@ -11,6 +11,7 @@ use crate::structs::{
 	SigninS1Request,
 	SigninS1Response,
 	SignupData,
+	SignupForm,
 	StructsCommon as _
 };
 use ::std::future::{ Future, IntoFuture };
@@ -18,21 +19,12 @@ use ::std::future::{ Future, IntoFuture };
 pub trait ClientSignup: Sized {
 	type Error: From<crate::Error>;
 	type ExtraData;
+	type EndRV;
 
 	/// Part of signup step 1
 	///
-	/// Gets the user email, ex. from a signup form
-	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-
-	/// Part of signup step 1
-	///
-	/// Gets the user password, ex. from a signup form
-	fn get_user_password(&mut self) -> impl Future<Output = Result<Password, Self::Error>>;
-
-	/// Part of signup step 1
-	///
-	/// Gets any extra information from the user form, ex. a captcha.
-	fn get_user_extra_data(&mut self) -> impl Future<Output = Result<Self::ExtraData, Self::Error>>;
+	/// Gets the user email, password, and other things, ex. from a signup form
+	fn get_signup_form(&mut self) -> impl Future<Output = Result<SignupForm<Self::ExtraData>, Self::Error>>;
 
 	/// Part of signup step 2
 	///
@@ -49,63 +41,53 @@ pub trait ClientSignup: Sized {
 	///
 	/// Submit all the information here, and the extra data if you need, to the
 	/// server for futher processing
-	fn submit_request(&mut self, signup_data: &SignupData, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+	fn submit_request(&mut self, signup_data: &SignupData<Self::ExtraData>) -> impl Future<Output = Result<(), Self::Error>>;
+
+	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
 
 	/// Part of signup step 16
 	///
 	/// Perform any finalisation if necessary.
-	///
-	/// There is a default implementation, so you don't have to implement this if
-	/// you don't need to use it
-	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	/// Run signup client.
-	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signup<C: ClientSignup>(
 			mut client: C
-		) -> Result<(), C::Error> {
+		) -> Result<C::EndRV, C::Error> {
 			// step 1: get user details
-			let email = client.get_user_email().await?;
-			let password = client.get_user_password().await?;
-			let extra_data = client.get_user_extra_data().await?;
+			let SignupForm {
+				email,
+				password,
+				extra_data
+			} = client.get_signup_form().await?;
 
-			// step 2: process extra data if necessary
 			client.process_extra_data_pre(&extra_data).await?;
 
-			// step 3: generate keypair and salt
 			let Keypair { public_key, private_key } = Keypair::generate();
 			let salt = Salt::generate();
 
-			// step 4: hash and salt (argon2) to get the password key
 			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
-
-			// step 5: hash (blake3 key derivation) password key to get password verifier
 			let password_verifier = PasswordVerifier::from_password_key(&password_key);
-
-			// step 6: encrypt private key with password key (step 4)
 			let encrypted_private_key = EncryptedPrivateKey::from_private_key_and_password_key(
 				&private_key,
 				&password_key
 			)?;
 
-			// step 7: submit email, salt, password verifier, public key,
-			// encrypted private key to the server. If extra data should be sent/processed
-			// do it now too
 			let signup_data = SignupData {
 				email,
 				salt,
 				password_verifier,
 				public_key,
-				encrypted_private_key
+				encrypted_private_key,
+				extra_data
 			};
-			client.submit_request(&signup_data, &extra_data).await?;
-			// continued in server trait, until step 15
+			client.submit_request(&signup_data).await?;
 
-			// step 16: finalise if necessary
-			client.finalise().await?;
-			Ok(())
+			client.process_extra_data_post(&signup_data.extra_data).await?;
+			client.finalise().await
 		}
 
 		SealedFutureImpl::new(self, run_signup)

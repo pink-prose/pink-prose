@@ -22,11 +22,12 @@ use ::std::future::{ Future, IntoFuture };
 pub trait ServerSignup: Sized {
 	type Error: From<crate::Error>;
 	type ExtraData;
+	type EndRV;
 
 	/// Part of step 7.5
 	///
 	/// Receives request information from the client.
-	fn receive_request(&mut self) -> impl Future<Output = Result<(SignupData, Self::ExtraData), Self::Error>>;
+	fn receive_request(&mut self) -> impl Future<Output = Result<SignupData<Self::ExtraData>, Self::Error>>;
 
 	/// Part of step 8
 	///
@@ -50,39 +51,37 @@ pub trait ServerSignup: Sized {
 	/// Part of step 12
 	///
 	/// Store the details and extra data so they can be retrieved later
-	fn store_unverified_user_data(&mut self, data: &StoredSignupData, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+	fn store_unverified_user_data(&mut self, data: &StoredSignupData<Self::ExtraData>) -> impl Future<Output = Result<(), Self::Error>>;
 
 	/// Part of step 13
 	///
 	/// Send verification email to the email and provided email verification token
-	fn send_verification(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
+	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
+
+	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	/// Part of step 14
 	///
 	/// Finalise anything if necessary. You can return back to the user in this
 	/// function or after the run function returns, whichever is more convenient
 	/// for you and whatever server lib you're using.
-	///
-	/// There is a default implementation, so you don't have to implement this if
-	/// you don't need to use it
-	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	/// Run signup server.
-	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signup<S: ServerSignup>(
 			mut server: S
-		) -> Result<(), S::Error> {
+		) -> Result<S::EndRV, S::Error> {
 			// step 7.5: get the data that the client submitted in step 7,
 			// and the extra data if that needed to be sent.
-			let (SignupData {
+			let SignupData {
 				email,
 				salt,
 				password_verifier,
 				public_key,
-				encrypted_private_key
-			}, extra_data) = server.receive_request().await?;
+				encrypted_private_key,
+				extra_data
+			} = server.receive_request().await?;
 
 			// step 8: process extra data if necessary
 			server.process_extra_data_pre(&extra_data).await?;
@@ -109,20 +108,18 @@ pub trait ServerSignup: Sized {
 				verifier_salt,
 				public_key,
 				encrypted_private_key,
-				email_verification_token
+				email_verification_token,
+				extra_data
 			};
-			server.store_unverified_user_data(&data, &extra_data).await?;
+			server.store_unverified_user_data(&data).await?;
 
 			// step 13: send an email verification, also containing the token (without waiting for verification,
 			// return as soon as its successfully sent)
-			server.send_verification(&data.email, &data.email_verification_token).await?;
+			server.send_verification_email(&data.email, &data.email_verification_token).await?;
 
+			server.process_extra_data_post(&data.extra_data).await?;
 			// step 14: finalise anything if necessary
-			server.finalise().await?;
-
-			// step 15: respond to client (after this function returns)
-			// continued in client trait
-			Ok(())
+			server.finalise().await
 		}
 
 		SealedFutureImpl::new(self, run_signup)
