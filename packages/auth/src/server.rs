@@ -111,7 +111,7 @@ pub trait ServerRequestVerificationEmail: Sized {
 			server.send_verification(email.as_str(), &email_verification_token).await?;
 
 			server.finalise_email_request(true).await?;
-			todo!()
+			Ok(())
 		}
 
 		SealedFutureImpl::new(self, run_request_verification_email)
