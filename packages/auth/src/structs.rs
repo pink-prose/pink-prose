@@ -25,6 +25,9 @@ pub use self::password::Password;
 pub mod password_key;
 pub use self::password_key::PasswordKey;
 
+pub mod password_reset_token;
+pub use self::password_reset_token::PasswordResetToken;
+
 pub mod password_verifier;
 pub use self::password_verifier::PasswordVerifier;
 

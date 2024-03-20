@@ -89,11 +89,16 @@ pub trait ClientRequestVerificationEmail: Sized {
 pub trait ClientRequestPasswordReset: Sized {
 	type Error: From<crate::Error>;
 
+	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
+	fn send_email_to_server(&mut self, email: &Email) -> impl Future<Output = Result<(), Self::Error>>;
+
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
 		async fn run_request_pw_reset<C: ClientRequestPasswordReset>(
-			client: C
+			mut client: C
 		) -> Result<(), C::Error> {
-			todo!()
+			let email = client.get_user_email().await?;
+			client.send_email_to_server(&email).await?;
+			Ok(())
 		}
 
 		SealedFutureImpl::new(self, run_request_pw_reset)

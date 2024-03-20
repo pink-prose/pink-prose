@@ -6,6 +6,7 @@ use crate::structs::{
 	Generatable as _,
 	HashedPasswordVerifier,
 	Password,
+	PasswordResetToken,
 	PasswordVerifier,
 	PublicKey,
 	Salt,
@@ -78,8 +79,7 @@ pub trait ServerRequestVerificationEmail: Sized {
 	type Error: From<crate::Error>;
 
 	fn receive_email_from_client(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-	fn check_email_in_unverified(&mut self) -> impl Future<Output = Result<bool, Self::Error>>;
-	fn generate_email_verification_token(&mut self, email: &str) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
+	fn check_email_in_unverified(&mut self, email: &str) -> impl Future<Output = Result<bool, Self::Error>>;
 	// TODO: should email type in following fns be `&Email`?
 	fn store_email_verification_token(&mut self, email: &str, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
 	fn send_verification(&mut self, email: &str, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
@@ -93,7 +93,7 @@ pub trait ServerRequestVerificationEmail: Sized {
 		) -> Result<(), S::Error> {
 			let email = server.receive_email_from_client().await?;
 
-			if !server.check_email_in_unverified().await? {
+			if !server.check_email_in_unverified(email.as_str()).await? {
 				// silent early bail
 
 				server.finalise_email_request(false).await?;
@@ -101,7 +101,7 @@ pub trait ServerRequestVerificationEmail: Sized {
 			}
 
 			// email is indeed in db, send and store
-			let email_verification_token = server.generate_email_verification_token(email.as_str()).await?;
+			let email_verification_token = EmailVerificationToken::generate();
 			server.store_email_verification_token(email.as_str(), &email_verification_token).await?;
 			server.send_verification(email.as_str(), &email_verification_token).await?;
 
@@ -116,11 +116,33 @@ pub trait ServerRequestVerificationEmail: Sized {
 pub trait ServerRequestPasswordReset: Sized {
 	type Error: From<crate::Error>;
 
+	fn receive_email_from_client(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
+	fn check_email_in_verified(&mut self, email: &str) -> impl Future<Output = Result<bool, Self::Error>>;
+	// TODO: should email type in following fns be `&Email`?
+	fn store_password_reset_token(&mut self, email: &str, password_reset_token: &PasswordResetToken) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
+	fn send_reset(&mut self, email: &str, password_reset_token: &PasswordResetToken) -> impl Future<Output = Result<(), Self::Error>>;
+	fn finalise_email_request(&mut self, sent: bool) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
 		async fn run_request_pw_reset<S: ServerRequestPasswordReset>(
-			server: S
+			mut server: S
 		) -> Result<(), S::Error> {
-			todo!()
+			let email = server.receive_email_from_client().await?;
+
+			if !server.check_email_in_verified(email.as_str()).await? {
+				// silent early bail
+
+				server.finalise_email_request(false).await?;
+				return Ok(());
+			}
+
+			let password_reset_token = PasswordResetToken::generate();
+			server.store_password_reset_token(email.as_str(), &password_reset_token).await?;
+			server.send_reset(email.as_str(), &password_reset_token).await?;
+
+			Ok(())
 		}
 
 		SealedFutureImpl::new(self, run_request_pw_reset)
