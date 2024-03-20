@@ -59,12 +59,14 @@ everything goes
 - yoink [fimfic feature requests](https://docs.google.com/spreadsheets/d/1ODO__7LHj0Lc_DEgAhjlkiYvMfN0_K5y7wgFUvUjUxo/edit?usp=sharing) for ideas LEL
 - how do we host?
 - featured stories hmmmmm
-- license section for stories
 - ability to "link related stories", kinda like fimfic's sequel function, but also for things like alternative versions of stories (translations etc?)
 - I think we have no reason to disallow chat stories or green text stories
 - license field
   - if story has permissive license, add a "remix" button to stories?
-  - author should be able to turn this off I think
+    - author should be able to turn this off I think
+  - default license: all rights reserved
+  - default license per account setting
+  - "remix request" (defualt on), letting you send a request to the author of the original, and approval from that would be equivalent to written permission, however that works
 - tag blacklist (global blacklist, like they can't exist)
 - total site ranking and per fandom ranking
 - need a name need a name
@@ -78,3 +80,20 @@ everything goes
   - but I think the link should be allowed anyways, it just wouldn't show up on original story's page without original permission, but the prequel story would show up on the sequel's page
 - like count public by default
   - showing a specific user's stories that they liked, should be private by default
+- managed tags
+  - users can create new tags but theyre "feature poor" to start
+  - existing widely used tags might become "managed", then they get definitions / relationships with other tags
+  - possible relationships: alias, supertag/subtag (stronger form of implies, like, if subtag then that's _always_ supertag), implies
+  - maybe probably do it the way derpi does it? tags are implicitly created on first use, and have no attrs, and "managed tags" are just tags with added attrs (and of course, not requiring all the attrs all at the same time)
+- story revisions
+  - "reverse diff"? ex. git does diffing by having the next version be a diff on top of the previous version? but for performance/efficiency we should store in full the newest version, and have the older version be built on top of the newer version.
+- affinity?
+  - ex. searching authors with >20% affinity for mlp means show authors with >20% of all their stories be MLP.
+  - theoretically can cap affinity, but actual usefulness is questionable
+- benefit to verified users? a la Twitter&trade;
+- account linking, either by oauth2 connection or similar, or sticking a string into a profile to prove ownership (that would have a verified thing attached to it I think, the same way discord does it?)
+  - definitely automated, if possible
+- "smart folders", ie. folders with contents based on filters
+- spoiler/hide system like derpi
+- previewing for different contexts
+- showing all of a user's comments (not sure if this should be restricted to "your own only")
