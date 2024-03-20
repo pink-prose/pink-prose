@@ -5,6 +5,7 @@ use ::surrealdb::engine::local::{ Db, SpeeDb, TiKv };
 use ::surrealdb::Surreal;
 
 pub mod error;
+pub mod opts;
 
 pub struct Database {
 	db: Surreal<Db>
@@ -93,16 +94,6 @@ impl Database {
 	get_global_word_ranking
 
 	 */
-}
-
-pub mod opts {
-	use ::serde::Serialize;
-
-	#[derive(Serialize)]
-	pub struct UserCreate<'h> {
-		pub email: &'h str,
-		pub username: &'h str
-	}
 }
 
 /// prefixes paths to the queries dir and adds file extension too,

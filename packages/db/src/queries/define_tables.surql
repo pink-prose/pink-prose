@@ -2,7 +2,12 @@
 -- TODO: find some way to enforce ULID?
 begin transaction;
 
+-- increment this target version every time a modification happens,
+-- and then append the updates to the bottom of this file.
+-- is made, and then do the updates. this file will run on db
+-- startup / connect to make sure schema is up to date
 let $target_schema_version = 1;
+
 let $current_schema_version = (
 	select current_schema_version from db_meta:schema_info
 );
@@ -12,6 +17,8 @@ if !$current_schema_version {
 	create db_meta:schema_info set
 		current_schema_version = $target_schema_version
 	;
+
+	----- users table -----
 
 	define table users schemaless;
 
@@ -23,6 +30,8 @@ if !$current_schema_version {
 
 	define index email_unique    on table users columns email unique;
 	define index username_unique on table users columns email unique;
+
+	----- stories table -----
 
 	define table stories schemaless;
 
@@ -41,9 +50,5 @@ if !$current_schema_version {
 		};
 	define field content_rating on stories type string; -- enum in rust, TODO: validate
 };
-
--- increment target version on top of file every time a modification
--- is made, and then do the updates. this file will run on db
--- startup / connect to make sure everything is up to date
 
 commit transaction;
