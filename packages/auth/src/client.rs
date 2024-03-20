@@ -8,6 +8,8 @@ use crate::structs::{
 	PasswordKey,
 	PasswordVerifier,
 	Salt,
+	SigninS1Request,
+	SigninS1Response,
 	SignupData,
 	StructsCommon as _
 };
@@ -185,24 +187,35 @@ pub trait ClientRequestVerificationEmail: Sized {
 // 	}
 // }
 
-// pub trait ClientSigninS1: Sized {
-// 	type Error: From<crate::Error>;
+pub trait ClientSigninS1: Sized {
+	type Error: From<crate::Error>;
+	type ExtraData;
 
-// 	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-// 	// fn send_request_stage1(&mut self) -> impl Future<Output = Result<
+	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
+	fn get_user_extra_data(&mut self) -> impl Future<Output = Result<Self::ExtraData, Self::Error>>;
+	fn submit_request(&mut self, req: &SigninS1Request, extra_data: &Self::ExtraData) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
 
-// 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-// 		async fn run_signin_s1<C: ClientSigninS1>(
-// 			mut client: C
-// 		) -> Result<(), C::Error> {
-// 			let email = client.get_user_email().await?;
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_signin_s1<C: ClientSigninS1>(
+			mut client: C
+		) -> Result<(), C::Error> {
+			let email = client.get_user_email().await?;
+			let extra_data = client.get_user_extra_data().await?;
 
-// 			todo!()
-// 		}
+			let req = SigninS1Request {
+				email
+			};
+			let SigninS1Response {
+				salt,
+				signin_attempt_id
+			} = client.submit_request(&req, &extra_data).await?;
 
-// 		SealedFutureImpl::new(self, run_signin_s1)
-// 	}
-// }
+			todo!()
+		}
+
+		SealedFutureImpl::new(self, run_signin_s1)
+	}
+}
 
 // pub trait ClientAuthenticatedAPIRequest: Sized {
 // 	type Error: From<crate::Error>;

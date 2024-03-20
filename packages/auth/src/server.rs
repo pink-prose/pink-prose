@@ -10,6 +10,10 @@ use crate::structs::{
 	PasswordVerifier,
 	PublicKey,
 	Salt,
+	SigninAttemptID,
+	SigninS1InProgress,
+	SigninS1Request,
+	SigninS1Response,
 	SignupData,
 	StoredSignupData
 };
@@ -232,19 +236,60 @@ pub trait ServerRequestVerificationEmail: Sized {
 // 	}
 // }
 
-// pub trait ServerSigninS1: Sized {
-// 	type Error: From<crate::Error>;
+pub trait ServerSigninS1: Sized {
+	type Error: From<crate::Error>;
+	type ExtraData;
 
-// 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-// 		async fn run_signin_s1<S: ServerSigninS1>(
-// 			server: S
-// 		) -> Result<(), S::Error> {
-// 			todo!()
-// 		}
+	fn receive_request(&mut self) -> impl Future<Output = Result<(SigninS1Request, Self::ExtraData), Self::Error>>;
+	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+	fn get_salt_and_is_verified(&mut self) -> impl Future<Output = Result<(Salt, bool), Self::Error>>;
+	fn finalise_not_email_verified(self, email: &Email) -> impl Future<Output = Result<(), Self::Error>>;
+	fn store_inprogress_signins(&mut self, in_progress_data: &SigninS1InProgress) -> impl Future<Output = Result<(), Self::Error>>;
+	fn send_response(&mut self, response: &SigninS1Response) -> impl Future<Output = Result<(), Self::Error>>;
+	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
 
-// 		SealedFutureImpl::new(self, run_signin_s1)
-// 	}
-// }
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_signin_s1<S: ServerSigninS1>(
+			mut server: S
+		) -> Result<(), S::Error> {
+			let (SigninS1Request {
+				email
+			}, extra_data) = server.receive_request().await?;
+
+			server.process_extra_data_pre(&extra_data).await?;
+
+			let (salt, is_verified) = server.get_salt_and_is_verified().await?;
+
+			if !is_verified {
+				server.finalise_not_email_verified(&email).await?;
+				return Ok(())
+			}
+
+			let signin_attempt_id = SigninAttemptID::generate();
+
+			let in_progress_data = SigninS1InProgress {
+				email,
+				signin_attempt_id
+			};
+			server.store_inprogress_signins(&in_progress_data).await?;
+
+			let response = SigninS1Response {
+				salt,
+				signin_attempt_id: in_progress_data.signin_attempt_id
+			};
+
+			server.send_response(&response).await?;
+
+			server.finalise().await?;
+
+			Ok(())
+		}
+
+		SealedFutureImpl::new(self, run_signin_s1)
+	}
+}
 
 // pub trait ServerAuthenticatedAPIRequest: Sized {
 // 	type Error: From<crate::Error>;
