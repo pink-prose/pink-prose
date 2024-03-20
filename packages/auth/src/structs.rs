@@ -1,41 +1,47 @@
-pub(crate) mod argon2;
-pub(crate) use self::argon2::Argon2;
+pub mod argon2;
+pub use self::argon2::Argon2;
 
-pub(crate) mod blake3;
-pub(crate) use self::blake3::Blake3;
+pub mod blake3;
+pub use self::blake3::Blake3;
 
-pub(crate) mod chacha20poly1305;
-pub(crate) use self::chacha20poly1305::ChaCha20Poly1305;
+pub mod chacha20poly1305;
+pub use self::chacha20poly1305::ChaCha20Poly1305;
 
-pub(crate) mod email;
-pub(crate) use self::email::Email;
+pub mod email;
+pub use self::email::Email;
 
-pub(crate) mod hashed_password_verifier;
-pub(crate) use self::hashed_password_verifier::HashedPasswordVerifier;
+pub mod email_verification_token;
+pub use self::email_verification_token::EmailVerificationToken;
 
-pub(crate) mod keypair;
-pub(crate) use self::keypair::{ EncryptedPrivateKey, Keypair, PublicKey, PrivateKey };
+pub mod hashed_password_verifier;
+pub use self::hashed_password_verifier::HashedPasswordVerifier;
 
-pub(crate) mod password;
-pub(crate) use self::password::Password;
+pub mod keypair;
+pub use self::keypair::{ EncryptedPrivateKey, Keypair, PublicKey, PrivateKey };
 
-pub(crate) mod password_key;
-pub(crate) use self::password_key::PasswordKey;
+pub mod password;
+pub use self::password::Password;
 
-pub(crate) mod password_verifier;
-pub(crate) use self::password_verifier::PasswordVerifier;
+pub mod password_key;
+pub use self::password_key::PasswordKey;
 
-pub(crate) mod salt;
-pub(crate) use self::salt::Salt;
+pub mod password_verifier;
+pub use self::password_verifier::PasswordVerifier;
+
+pub mod salt;
+pub use self::salt::Salt;
 
 pub mod signup_data;
 pub use self::signup_data::{ SignupData, StoredSignupData };
 
-use crate::error::*;
+use crate::error::Result;
 
-/// Provides standardised methods to convert values to and from string, for ex.
-/// storing in a database.
-pub trait ToFromString: Sized {
+/// Provides standardised methods for structs in this module
+pub trait StructsCommon: Sized {
 	fn to_string(&self) -> Result<String>;
 	fn from_str(s: &str) -> Result<Self>;
+}
+
+pub trait Generatable: Sized {
+	fn generate() -> Self;
 }

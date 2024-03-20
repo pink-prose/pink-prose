@@ -1,7 +1,17 @@
 use crate::error::*;
-use super::{ Blake3, PasswordKey };
+use super::{ Blake3, PasswordKey, StructsCommon };
 
 pub struct PasswordVerifier(Blake3);
+
+impl StructsCommon for PasswordVerifier {
+	fn to_string(&self) -> Result<String> {
+		self.0.to_string()
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		Ok(Self(Blake3::from_str(s)?))
+	}
+}
 
 impl PasswordVerifier {
 	// pub fn from_password_key(password_key: &PasswordKey) -> Self {

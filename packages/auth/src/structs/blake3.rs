@@ -1,7 +1,21 @@
 use crate::error::*;
+use super::StructsCommon;
 use ::blake3::Hasher;
 
 pub struct Blake3([u8; 32]);
+
+impl StructsCommon for Blake3 {
+	fn to_string(&self) -> Result<String> {
+		Ok(::hex::encode(&self.0 as &[u8]))
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		let decoded = ::hex::decode(s.as_bytes())?
+			.try_into()
+			.map_err(|_| Error::TryIntoArray)?;
+		Ok(Self(decoded))
+	}
+}
 
 impl Blake3 {
 	// pub fn hash(bytes: &[u8]) -> Self {

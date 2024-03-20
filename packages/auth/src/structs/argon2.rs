@@ -1,5 +1,5 @@
 use crate::error::*;
-use crate::structs::{ Password, Salt };
+use super::{ Password, Salt, StructsCommon };
 use ::argon2::{ Algorithm, Version, ParamsBuilder };
 
 pub struct Argon2 {
@@ -11,25 +11,54 @@ pub struct Argon2 {
 	bytes: [u8; Self::OUT_BYTES]
 }
 
+impl StructsCommon for Argon2 {
+	fn to_string(&self) -> Result<String> {
+		let Self { alg, m_cost, t_cost, p_cost, output_len, bytes } = self;
+		let hex = ::hex::encode(bytes as &[u8]);
+		Ok(format!("{alg}-{m_cost}-{t_cost}-{p_cost}-{output_len}-{hex}"))
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		let mut iter = s.split('-');
+
+		/// lazy
+		macro_rules! try_next {
+			() => { iter.next().ok_or_else(|| Error::ParseArgon2)? }
+		}
+
+		let alg = try_next!().parse()?;
+		let m_cost = try_next!().parse()?;
+		let t_cost = try_next!().parse()?;
+		let p_cost = try_next!().parse()?;
+		let output_len = try_next!().parse()?;
+		let bytes = ::hex::decode(try_next!().as_bytes())?
+			.try_into()
+			.map_err(|_| Error::TryIntoArray)?;
+		assert!(iter.next().is_none());
+
+		Ok(Self { alg, m_cost, t_cost, p_cost, output_len, bytes })
+	}
+}
+
 impl Argon2 {
-	// const ALG: Algorithm = Algorithm::Argon2id;
-	// const ARGON2_M_COST: u32 = 0x10000;
-	// const ARGON2_T_COST: u32 = 4;
-	// const ARGON2_P_COST: u32 = 2;
+	const ALG: Algorithm = Algorithm::Argon2id;
+	const ARGON2_M_COST: u32 = 0x10000;
+	const ARGON2_T_COST: u32 = 4;
+	const ARGON2_P_COST: u32 = 2;
 	const OUT_BYTES: usize = 32;
-	//
-	// fn _new_hasher() -> Result<::argon2::Argon2<'static>> {
-	// 	Ok(::argon2::Argon2::new(
-	// 		Self::ALG,
-	// 		Version::default(),
-	// 		ParamsBuilder::new()
-	// 			.m_cost(Self::ARGON2_M_COST)
-	// 			.t_cost(Self::ARGON2_T_COST)
-	// 			.p_cost(Self::ARGON2_P_COST)
-	// 			.build()?
-	// 	))
-	// }
-	//
+
+	fn _new_hasher() -> Result<::argon2::Argon2<'static>> {
+		Ok(::argon2::Argon2::new(
+			Self::ALG,
+			Version::default(),
+			ParamsBuilder::new()
+				.m_cost(Self::ARGON2_M_COST)
+				.t_cost(Self::ARGON2_T_COST)
+				.p_cost(Self::ARGON2_P_COST)
+				.build()?
+		))
+	}
+
 	// pub fn hash_and_salt(
 	// 	to_hash: &[u8],
 	// 	salt: &Salt

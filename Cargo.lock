@@ -1850,6 +1850,7 @@ dependencies = [
  "p384",
  "rand 0.8.5",
  "thiserror",
+ "validator",
 ]
 
 [[package]]
@@ -3801,6 +3802,21 @@ dependencies = [
  "getrandom 0.2.12",
  "serde",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "validator"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da339118f018cc70ebf01fafc103360528aad53717e4bf311db929cb01cb9345"
+dependencies = [
+ "idna",
+ "once_cell",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "url",
 ]
 
 [[package]]

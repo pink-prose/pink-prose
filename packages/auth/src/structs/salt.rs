@@ -1,7 +1,21 @@
 use crate::error::*;
+use super::{ StructsCommon, Generatable };
 use ::rand::{ Rng, rngs::OsRng };
 
 pub struct Salt([u8; 64]);
+
+impl StructsCommon for Salt {
+	fn to_string(&self) -> Result<String> {
+		Ok(::hex::encode(&self.0 as &[u8]))
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		let decoded = ::hex::decode(s.as_bytes())?
+			.try_into()
+			.map_err(|_| Error::TryIntoArray)?;
+		Ok(Self(decoded))
+	}
+}
 
 impl Salt {
 	// pub fn generate() -> Self {

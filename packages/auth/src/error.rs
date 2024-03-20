@@ -10,10 +10,16 @@ pub enum Error {
 	Argon2(::argon2::Error),
 	#[error(transparent)]
 	Hex(#[from] ::hex::FromHexError),
+	#[error("email {0} is invalid")]
+	InvalidEmail(String),
 	#[error(transparent)]
 	P384PKCS8SPKI(#[from] ::p384::pkcs8::spki::Error),
 	#[error(transparent)]
 	P384PKCS8(#[from] ::p384::pkcs8::Error),
+	#[error("invalid argon2 hash string")]
+	ParseArgon2,
+	#[error(transparent)]
+	ParseInt(#[from] ::std::num::ParseIntError),
 	#[error("failed to convert to fixed size array")]
 	TryIntoArray
 }

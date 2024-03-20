@@ -1,6 +1,17 @@
 use crate::error::*;
+use super::StructsCommon;
 
 pub struct ChaCha20Poly1305(Vec<u8>);
+
+impl StructsCommon for ChaCha20Poly1305 {
+	fn to_string(&self) -> Result<String> {
+		Ok(::hex::encode(&*self.0))
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		Ok(Self(::hex::decode(s.as_bytes())?))
+	}
+}
 
 impl ChaCha20Poly1305 {
 	// pub fn encrypt_nonce0(

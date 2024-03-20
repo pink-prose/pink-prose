@@ -1,17 +1,27 @@
+use super::{
+	Email,
+	EmailVerificationToken,
+	EncryptedPrivateKey,
+	HashedPasswordVerifier,
+	PasswordVerifier,
+	PublicKey,
+	Salt
+};
+
 pub struct SignupData<T> {
-	pub email: String,
-	pub salt: String,
-	pub password_verifier: String,
-	pub public_key: String,
-	pub encrypted_private_key: String,
+	pub email: Email,
+	pub salt: Salt,
+	pub password_verifier: PasswordVerifier,
+	pub public_key: PublicKey,
+	pub encrypted_private_key: EncryptedPrivateKey,
 	pub extra_data: T
 }
 
 pub struct StoredSignupData {
-	pub email: String,
-	pub salt: String,
-	pub hashed_password_verifier: String,
-	pub public_key: String,
-	pub encrypted_private_key: String,
-	pub email_verification_token: String
+	pub email: Email,
+	pub salt: Salt,
+	pub hashed_password_verifier: HashedPasswordVerifier,
+	pub public_key: PublicKey,
+	pub encrypted_private_key: EncryptedPrivateKey,
+	pub email_verification_token: EmailVerificationToken
 }
