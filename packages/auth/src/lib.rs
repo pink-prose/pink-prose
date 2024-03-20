@@ -4,10 +4,12 @@
 )]
 #![allow(dead_code, unused_imports, unused_variables)]
 
-#[cfg(feature = "client")]
+// TODO: enable these
+// #[cfg(feature = "client")]
 mod client;
 
-#[cfg(feature = "server")]
+// TODO: enable these
+// #[cfg(feature = "server")]
 mod server;
 
 mod error;

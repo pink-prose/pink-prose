@@ -64,3 +64,20 @@ async fn run_signup<C: ClientSignup>(mut client: C) -> Result<(), C::Error> {
 	client.finalise_signup().await?;
 	Ok(())
 }
+
+pub trait ClientRequestEmail: Sized {
+	type Error: From<crate::Error>;
+
+	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
+	fn send_email_to_server(&mut self, email: &Email) -> impl Future<Output = Result<(), Self::Error>>;
+
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		SealedFutureImpl::new(self, run_request_email)
+	}
+}
+
+async fn run_request_email<C: ClientRequestEmail>(mut client: C) -> Result<(), C::Error> {
+	let email = client.get_user_email().await?;
+	client.send_email_to_server(&email).await?;
+	Ok(())
+}
