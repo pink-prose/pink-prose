@@ -78,7 +78,6 @@ pub trait ServerRequestVerificationEmail: Sized {
 	type Error: From<crate::Error>;
 
 	fn receive_email_from_client(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-	fn check_email_in_verified(&mut self) -> impl Future<Output = Result<bool, Self::Error>>;
 	fn check_email_in_unverified(&mut self) -> impl Future<Output = Result<bool, Self::Error>>;
 	fn generate_email_verification_token(&mut self, email: &str) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
 	// TODO: should email type in following fns be `&Email`?
@@ -94,15 +93,11 @@ pub trait ServerRequestVerificationEmail: Sized {
 		) -> Result<(), S::Error> {
 			let email = server.receive_email_from_client().await?;
 
-			// if statement is not collapsed for clarity reasons
-			#[allow(clippy::collapsible_if)]
-			if !server.check_email_in_verified().await? {
-				if !server.check_email_in_unverified().await? {
-					// silent early bail
+			if !server.check_email_in_unverified().await? {
+				// silent early bail
 
-					server.finalise_email_request(false).await?;
-					return Ok(());
-				}
+				server.finalise_email_request(false).await?;
+				return Ok(());
 			}
 
 			// email is indeed in db, send and store
