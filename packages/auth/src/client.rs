@@ -9,7 +9,7 @@ use crate::structs::{
 	PasswordVerifier,
 	Salt,
 	SignupData,
-	StructsCommon as _1
+	StructsCommon as _
 };
 use ::std::future::{ Future, IntoFuture };
 
