@@ -4,10 +4,14 @@
 )]
 #![allow(dead_code, unused_imports, unused_variables)]
 
-pub mod error;
-pub mod client;
-pub mod server;
-pub mod shared_structs;
-mod util;
+#[cfg(feature = "client")]
+mod client;
 
-pub use self::error::*;
+#[cfg(feature = "server")]
+mod server;
+
+mod error;
+mod sealed_future;
+mod structs;
+
+pub use crate::error::Error;
