@@ -1,5 +1,5 @@
 use crate::error::*;
-use crate::structs::{ UserPassword, Salt };
+use crate::structs::{ Password, Salt };
 use ::argon2::{ Algorithm, Version, ParamsBuilder };
 
 pub struct Argon2 {
@@ -29,7 +29,7 @@ impl Argon2 {
 	}
 
 	pub fn hash_and_salt(
-		password: &UserPassword,
+		password: &Password,
 		salt: &Salt
 	) -> Result<Self> {
 		let hasher = Self::new_hasher()?;

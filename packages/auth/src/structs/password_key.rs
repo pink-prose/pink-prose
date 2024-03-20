@@ -1,10 +1,10 @@
 use crate::error::*;
-use super::{ Argon2, Salt, UserPassword };
+use super::{ Argon2, Salt, Password };
 
 pub struct PasswordKey(Argon2);
 
 impl PasswordKey {
-	pub fn from_pw_and_salt(password: &UserPassword, salt: &Salt) -> Result<Self> {
+	pub fn from_pw_and_salt(password: &Password, salt: &Salt) -> Result<Self> {
 		let hash = Argon2::hash_and_salt(password, salt)?;
 		Ok(Self(hash))
 	}

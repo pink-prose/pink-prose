@@ -8,10 +8,10 @@ pub trait ServerSignup: Sized {
 	// fn receive_signup_from_client(&mut self) -> impl Future<Output = Result<>>;
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-		SealedFutureImpl::new(self, run)
+		SealedFutureImpl::new(self, run_signup)
 	}
 }
 
-async fn run<S: ServerSignup>(server: S) -> Result<(), S::Error> {
+async fn run_signup<S: ServerSignup>(server: S) -> Result<(), S::Error> {
 	todo!()
 }

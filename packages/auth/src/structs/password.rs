@@ -1,6 +1,6 @@
-pub struct UserPassword(String);
+pub struct Password(String);
 
-impl UserPassword {
+impl Password {
 	pub fn from_string(s: String) -> Self {
 		Self(s)
 	}

@@ -11,4 +11,8 @@ impl PasswordVerifier {
 
 		Self(hash)
 	}
+
+	pub fn to_string(&self) -> String {
+		self.0.to_string()
+	}
 }

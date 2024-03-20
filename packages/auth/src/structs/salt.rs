@@ -12,4 +12,8 @@ impl Salt {
 	pub fn as_bytes(&self) -> &[u8; 64] {
 		&self.0
 	}
+
+	pub fn to_string(&self) -> String {
+		::hex::encode(&self.0 as &[u8])
+	}
 }

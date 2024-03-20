@@ -16,4 +16,8 @@ impl Blake3 {
 		let bytes = *hasher.finalize().as_bytes();
 		Self(bytes)
 	}
+
+	pub fn to_string(&self) -> String {
+		::hex::encode(&self.0 as &[u8])
+	}
 }
