@@ -6,7 +6,7 @@ use ::std::future::{ IntoFuture, Future };
 
 /// See docs on [`SealedFuture`] for more info
 pub struct SealedFutureImpl<V, F> {
-	/// the Self obj
+	/// the single param to the function
 	value: V,
 	/// Function that returns future
 	function: F

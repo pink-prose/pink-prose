@@ -59,38 +59,30 @@ impl Argon2 {
 		))
 	}
 
-	// pub fn hash_and_salt(
-	// 	to_hash: &[u8],
-	// 	salt: &Salt
-	// ) -> Result<Self> {
-	// 	let hasher = Self::_new_hasher()?;
-	// 	let mut bytes = [0u8; Self::OUT_BYTES];
-	//
-	// 	hasher.hash_password_into(
-	// 		to_hash,
-	// 		salt.as_bytes(),
-	// 		&mut bytes
-	// 	)?;
-	//
-	// 	Ok(Self {
-	// 		alg: Self::ALG,
-	// 		m_cost: Self::ARGON2_M_COST,
-	// 		t_cost: Self::ARGON2_T_COST,
-	// 		p_cost: Self::ARGON2_P_COST,
-	// 		output_len: Self::OUT_BYTES,
-	// 		bytes
-	// 	})
-	// }
-	//
-	// pub fn as_bytes(&self) -> &[u8; Self::OUT_BYTES] {
-	// 	&self.bytes
-	// }
-	//
-	// pub fn to_string(&self) -> String {
-	// 	let hex = ::hex::encode(&self.bytes as &[u8]);
-	// 	let Self { alg, m_cost, t_cost, p_cost, output_len, bytes: _ } = self;
-	// 	format!("{alg}-{m_cost}-{t_cost}-{p_cost}-{output_len}-{hex}")
-	// }
-	//
-	// // pub fn from_str(s: &str) -> Result<Self> {}
+	pub(crate) fn hash_and_salt(
+		to_hash: &[u8],
+		salt: &Salt
+	) -> Result<Self> {
+		let hasher = Self::_new_hasher()?;
+		let mut bytes = [0u8; Self::OUT_BYTES];
+
+		hasher.hash_password_into(
+			to_hash,
+			salt.as_bytes(),
+			&mut bytes
+		)?;
+
+		Ok(Self {
+			alg: Self::ALG,
+			m_cost: Self::ARGON2_M_COST,
+			t_cost: Self::ARGON2_T_COST,
+			p_cost: Self::ARGON2_P_COST,
+			output_len: Self::OUT_BYTES,
+			bytes
+		})
+	}
+
+	pub(crate) fn hash_bytes(&self) -> &[u8; Self::OUT_BYTES] {
+		&self.bytes
+	}
 }

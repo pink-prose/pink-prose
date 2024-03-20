@@ -21,7 +21,7 @@ impl Generatable for Keypair {
 }
 
 impl Keypair {
-	// pub fn validate(&self) -> bool {
+	// pub(crate) fn validate(&self) -> bool {
 	// 	self.private_key.0.public_key() == self.public_key.0
 	// }
 }
@@ -63,24 +63,24 @@ impl StructsCommon for EncryptedPrivateKey {
 }
 
 impl EncryptedPrivateKey {
-	// pub fn from_private_key_and_password_key(
-	// 	private_key: &PrivateKey,
-	// 	password_key: &PasswordKey
-	// ) -> Result<Self> {
-	// 	let private_key = private_key.to_string()?;
-	// 	let encrypted = ChaCha20Poly1305::encrypt_nonce0(
-	// 		private_key.as_bytes(),
-	// 		*password_key.as_bytes()
-	// 	)?;
-	//
-	// 	Ok(Self(encrypted))
-	// }
-	//
-	// pub fn to_string(&self) -> String {
+	pub(crate) fn from_private_key_and_password_key(
+		private_key: &PrivateKey,
+		password_key: &PasswordKey
+	) -> Result<Self> {
+		let private_key = private_key.to_string()?;
+		let encrypted = ChaCha20Poly1305::encrypt_nonce0(
+			private_key.as_bytes(),
+			*password_key.as_bytes()
+		)?;
+
+		Ok(Self(encrypted))
+	}
+
+	// pub(crate) fn to_string(&self) -> String {
 	// 	self.0.to_string()
 	// }
 	//
-	// pub fn from_str(s: &str) -> Result<Self> {
+	// pub(crate) fn from_str(s: &str) -> Result<Self> {
 	// 	Ok(Self(ChaCha20Poly1305::from_str(s)?))
 	// }
 }

@@ -14,12 +14,15 @@ impl StructsCommon for HashedPasswordVerifier {
 }
 
 impl HashedPasswordVerifier {
-	// pub fn from_password_verifier_and_salt(password: &PasswordVerifier, salt: &Salt) -> Result<Self> {
-	// 	let hash = Argon2::hash_and_salt(password.as_bytes(), salt)?;
-	// 	Ok(Self(hash))
-	// }
-	//
-	// pub fn to_string(&self) -> String {
+	pub(crate) fn from_password_verifier_and_salt(
+		password_verifier: &PasswordVerifier,
+		salt: &Salt
+	) -> Result<Self> {
+		let hash = Argon2::hash_and_salt(password_verifier.as_bytes(), salt)?;
+		Ok(Self(hash))
+	}
+
+	// pub(crate) fn to_string(&self) -> String {
 	// 	self.0.to_string()
 	// }
 }

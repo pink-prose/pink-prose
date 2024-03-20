@@ -16,15 +16,15 @@ impl StructsCommon for Email {
 }
 
 impl Email {
-	// pub fn from_string(s: String) -> Self {
+	// pub(crate) fn from_string(s: String) -> Self {
 	// 	Self(s)
 	// }
 	//
-	// pub fn into_string(self) -> String {
+	// pub(crate) fn into_string(self) -> String {
 	// 	self.0
 	// }
-	//
-	// pub fn as_str(&self) -> &str {
-	// 	&self.0
-	// }
+
+	pub(crate) fn as_str(&self) -> &str {
+		&self.0
+	}
 }

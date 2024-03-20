@@ -2,7 +2,7 @@ use crate::error::*;
 use super::{ StructsCommon, Generatable };
 use ::rand::{ Rng, rngs::OsRng };
 
-pub struct EmailVerificationToken([u8; 64]);
+pub struct EmailVerificationToken([u8; 32]);
 
 impl StructsCommon for EmailVerificationToken {
 	fn to_string(&self) -> Result<String> {
@@ -19,7 +19,7 @@ impl StructsCommon for EmailVerificationToken {
 
 impl Generatable for EmailVerificationToken {
 	fn generate() -> Self {
-		let mut bytes = [0u8; 64];
+		let mut bytes = [0u8; 32];
 		OsRng.fill(&mut bytes);
 		Self(bytes)
 	}
