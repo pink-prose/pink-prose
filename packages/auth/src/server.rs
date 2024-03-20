@@ -19,23 +19,59 @@ pub trait ServerSignup: Sized {
 	type Error: From<crate::Error>;
 	type ExtraData;
 
+	/// Part of step 7.5
+	///
+	/// Receives request information from the client.
 	fn receive_request(&mut self) -> impl Future<Output = Result<(SignupData, Self::ExtraData), Self::Error>>;
+
+	/// Part of step 8
+	///
+	/// Processes extra data obtained by the client. Ex. redeeming captcha tokens
+	///
+	/// There is a default implementation, so you don't have to implement this if
+	/// you don't need to use it
 	fn process_extra_data_pre(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
+
+	/// Part of step 9
+	///
+	/// Ensure the email is unique (ie. it doesn't already exist in the verified
+	/// or unverified users database, or otherwise in any way, in the db) (ie.
+	/// make sure that this is valid to make a new account with the email / extra
+	/// data)
 	// TODO: should the email type in these following two fns be `&Email`?
-	fn ensure_email_unique_and_reserve(&mut self, email: &str) -> impl Future<Output = Result<(), Self::Error>>;
-	fn generate_email_verification_token(&mut self, email: &str) -> impl Future<Output = Result<EmailVerificationToken, Self::Error>>;
+	fn ensure_unique_and_reserve(&mut self, email: &str, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+
+	/// Part of step 12
+	///
+	/// Store the details and extra data so they can be retrieved later
 	fn store_unverified_user_data(&mut self, data: &StoredSignupData, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+
+	/// Part of step 13
+	///
+	/// Send verification email to the email and provided email verification token
 	fn send_verification(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
+
+	/// Part of step 14
+	///
+	/// Finalise anything if necessary. You can return back to the user in this
+	/// function or after the run function returns, whichever is more convenient
+	/// for you and whatever server lib you're using.
+	///
+	/// There is a default implementation, so you don't have to implement this if
+	/// you don't need to use it
 	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
 
+	/// Run signup server.
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
 		async fn run_signup<S: ServerSignup>(
 			mut server: S
 		) -> Result<(), S::Error> {
+			// step 7.5: get the data that the client submitted in step 7,
+			// and the extra data if that needed to be sent.
 			let (SignupData {
 				email,
 				salt,
@@ -44,14 +80,24 @@ pub trait ServerSignup: Sized {
 				encrypted_private_key
 			}, extra_data) = server.receive_request().await?;
 
+			// step 8: process extra data if necessary
 			server.process_extra_data_pre(&extra_data).await?;
-			server.ensure_email_unique_and_reserve(email.as_str()).await?;
 
+			// step 9: make sure the email is available. Extra data is
+			// passed here too so you can ex. check a username
+			server.ensure_unique_and_reserve(email.as_str(), &extra_data).await?;
+
+			// step 10: generate salt to hash the verifier, then hash it
 			let verifier_salt = Salt::generate();
 			let hashed_password_verifier = HashedPasswordVerifier::from_password_verifier_and_salt(&password_verifier, &salt)?;
 
-			let email_verification_token = server.generate_email_verification_token(email.as_str()).await?;
+			// step 11: generate an email token
+			let email_verification_token = EmailVerificationToken::generate();
 
+			// step 12: store email, salt, hashed password verifier, verifier salt,
+			// pub key, encrypted priv key, email verification token (in an array
+			// to ensure multiple can be stored together), and do it in a seperate
+			// unverified users DB
 			let data = StoredSignupData {
 				email,
 				salt,
@@ -63,9 +109,15 @@ pub trait ServerSignup: Sized {
 			};
 			server.store_unverified_user_data(&data, &extra_data).await?;
 
+			// step 13: send an email verification, also containing the token (without waiting for verification,
+			// return as soon as its successfully sent)
 			server.send_verification(&data.email, &data.email_verification_token).await?;
 
+			// step 14: finalise anything if necessary
 			server.finalise().await?;
+
+			// step 15: respond to client (after this function returns)
+			// continued in client trait
 			Ok(())
 		}
 
