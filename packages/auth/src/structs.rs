@@ -30,3 +30,12 @@ pub(crate) use self::salt::Salt;
 
 pub mod signup_data;
 pub use self::signup_data::{ SignupData, StoredSignupData };
+
+use crate::error::*;
+
+/// Provides standardised methods to convert values to and from string, for ex.
+/// storing in a database.
+pub trait ToFromString: Sized {
+	fn to_string(&self) -> Result<String>;
+	fn from_str(s: &str) -> Result<Self>;
+}
