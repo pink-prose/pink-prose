@@ -32,7 +32,9 @@ pub trait ServerSignup: Sized {
 	}
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-		async fn run_signup<S: ServerSignup>(mut server: S) -> Result<(), S::Error> {
+		async fn run_signup<S: ServerSignup>(
+			mut server: S
+		) -> Result<(), S::Error> {
 			let SignupData {
 				email,
 				salt,
@@ -72,8 +74,7 @@ pub trait ServerSignup: Sized {
 	}
 }
 
-
-pub trait ServerRequestEmail: Sized {
+pub trait ServerRequestVerificationEmail: Sized {
 	type Error: From<crate::Error>;
 
 	fn receive_email_from_client(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
@@ -88,7 +89,9 @@ pub trait ServerRequestEmail: Sized {
 	}
 
 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-		async fn run_request_email<S: ServerRequestEmail>(mut server: S) -> Result<(), S::Error> {
+		async fn run_request_verification_email<S: ServerRequestVerificationEmail>(
+			mut server: S
+		) -> Result<(), S::Error> {
 			let email = server.receive_email_from_client().await?;
 
 			// if statement is not collapsed for clarity reasons
@@ -111,6 +114,76 @@ pub trait ServerRequestEmail: Sized {
 			todo!()
 		}
 
-		SealedFutureImpl::new(self, run_request_email)
+		SealedFutureImpl::new(self, run_request_verification_email)
+	}
+}
+
+pub trait ServerRequestPasswordReset: Sized {
+	type Error: From<crate::Error>;
+
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_request_pw_reset<S: ServerRequestPasswordReset>(
+			server: S
+		) -> Result<(), S::Error> {
+			todo!()
+		}
+
+		SealedFutureImpl::new(self, run_request_pw_reset)
+	}
+}
+
+pub trait ServerVerificationLinkClicked: Sized {
+	type Error: From<crate::Error>;
+
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_verification_link_click<S: ServerVerificationLinkClicked>(
+			server: S
+		) -> Result<(), S::Error> {
+			todo!()
+		}
+
+		SealedFutureImpl::new(self, run_verification_link_click)
+	}
+}
+
+pub trait ServerPasswordResetLinkClicked: Sized {
+	type Error: From<crate::Error>;
+
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_pw_reset_link_clicked<S: ServerPasswordResetLinkClicked>(
+			server: S
+		) -> Result<(), S::Error> {
+			todo!()
+		}
+
+		SealedFutureImpl::new(self, run_pw_reset_link_clicked)
+	}
+}
+
+pub trait ServerSignin: Sized {
+	type Error: From<crate::Error>;
+
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_signin<S: ServerSignin>(
+			server: S
+		) -> Result<(), S::Error> {
+			todo!()
+		}
+
+		SealedFutureImpl::new(self, run_signin)
+	}
+}
+
+pub trait ServerAuthenticatedAPIRequest: Sized {
+	type Error: From<crate::Error>;
+
+	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+		async fn run_authenticated_api_req<S: ServerAuthenticatedAPIRequest>(
+			server: S
+		) -> Result<(), S::Error> {
+			todo!()
+		}
+
+		SealedFutureImpl::new(self, run_authenticated_api_req)
 	}
 }
