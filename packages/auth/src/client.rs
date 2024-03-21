@@ -11,6 +11,9 @@ use crate::structs::{
 	SigninS1Form,
 	SigninS1Request,
 	SigninS1Response,
+	SigninS2Form,
+	SigninS2Request,
+	SigninS2Response,
 	SignupData,
 	SignupForm,
 	StructsCommon as _
@@ -179,7 +182,7 @@ pub trait ClientSigninS1: Sized {
 	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
-	fn submit_request(&mut self, request: &SigninS1Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
+	fn submit_s1_request(&mut self, request: &SigninS1Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
@@ -200,13 +203,51 @@ pub trait ClientSigninS1: Sized {
 				email,
 				extra_data
 			};
-			let response = client.submit_request(&request).await?;
+			let response = client.submit_s1_request(&request).await?;
 
 			client.process_extra_data_post(&request.extra_data).await?;
 			client.finalise(response).await
 		}
 
 		SealedFutureImpl::new(self, run_signin_s1)
+	}
+}
+
+pub trait ClientSigninS2: Sized {
+	type Error: From<crate::Error>;
+	type EndRV;
+
+	fn get_s1_result(&mut self) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
+	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninS2Form, Self::Error>>;
+	fn submit_s2_request(&mut self, request: &SigninS2Request) -> impl Future<Output = Result<SigninS2Response, Self::Error>>;
+	fn finalise(self, response: SigninS2Response) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
+		async fn run_signin_s2<C: ClientSigninS2>(
+			mut client: C
+		) -> Result<C::EndRV, C::Error> {
+			let SigninS1Response {
+				salt,
+				signin_attempt_id
+			} = client.get_s1_result().await?;
+
+			let SigninS2Form {
+				password
+			} = client.get_signin_form().await?;
+
+			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
+			let password_verifier = PasswordVerifier::from_password_key(&password_key);
+
+			let request = SigninS2Request {
+				signin_attempt_id,
+				password_verifier
+			};
+			let response = client.submit_s2_request(&request).await?;
+
+			client.finalise(response).await
+		}
+
+		SealedFutureImpl::new(self, run_signin_s2)
 	}
 }
 

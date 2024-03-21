@@ -17,7 +17,8 @@ pub struct SigninS1Response {
 
 pub enum SigninS1GetSalt {
 	Verified(Salt),
-	NotVerified
+	NotVerified,
+	InvalidEmail
 }
 
 pub struct SigninS1InProgress {

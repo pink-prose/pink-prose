@@ -1,10 +1,10 @@
 use crate::error::*;
 use super::{ StructsCommon, Generatable };
-use ::rand::{ Rng, rngs::OsRng };
+use ::rand::{ Rng as _, rngs::OsRng };
 
-pub struct SigninAttemptID([u8; 32]);
+pub struct TextChallenge([u8; 64]);
 
-impl StructsCommon for SigninAttemptID {
+impl StructsCommon for TextChallenge {
 	fn to_string(&self) -> Result<String> {
 		Ok(::hex::encode(&self.0 as &[u8]))
 	}
@@ -17,10 +17,10 @@ impl StructsCommon for SigninAttemptID {
 	}
 }
 
-impl Generatable for SigninAttemptID {
+impl Generatable for TextChallenge {
 	fn generate() -> Self {
-		let mut salt = [0u8; 32];
-		OsRng.fill(&mut salt);
-		Self(salt)
+		let mut bytes = [0u8; 64];
+		OsRng.fill(&mut bytes);
+		Self(bytes)
 	}
 }

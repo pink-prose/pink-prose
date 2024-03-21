@@ -40,8 +40,14 @@ pub use self::signin_attempt_id::SigninAttemptID;
 pub mod signin_s1;
 pub use self::signin_s1::{ SigninS1Form, SigninS1Request, SigninS1Response, SigninS1GetSalt, SigninS1InProgress };
 
+pub mod signin_s2;
+pub use self::signin_s2::{ SigninS2Form, SigninS2Request, SigninS2Response, SigninS2UserInfo };
+
 pub mod signup;
 pub use self::signup::{ SignupData, SignupForm, StoredSignupData };
+
+pub mod text_challenge;
+pub use self::text_challenge::TextChallenge;
 
 use crate::error::Result;
 

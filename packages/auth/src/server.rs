@@ -15,8 +15,12 @@ use crate::structs::{
 	SigninS1InProgress,
 	SigninS1Request,
 	SigninS1Response,
+	SigninS2Request,
+	SigninS2Response,
+	SigninS2UserInfo,
 	SignupData,
-	StoredSignupData
+	StoredSignupData,
+	TextChallenge
 };
 use ::std::future::{ Future, IntoFuture };
 
@@ -249,8 +253,12 @@ pub trait ServerSigninS1: Sized {
 	}
 	fn get_salt_and_is_verified(&mut self) -> impl Future<Output = Result<SigninS1GetSalt, Self::Error>>;
 	fn finalise_not_email_verified(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn finalise_invalid_email(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 	fn store_inprogress_signin(&mut self, in_progress_data: &SigninS1InProgress) -> impl Future<Output = Result<(), Self::Error>>;
 	fn send_response(&mut self, response: &SigninS1Response) -> impl Future<Output = Result<(), Self::Error>>;
+	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
@@ -267,6 +275,7 @@ pub trait ServerSigninS1: Sized {
 			let salt = match server.get_salt_and_is_verified().await? {
 				SigninS1GetSalt::Verified(salt) => { salt }
 				SigninS1GetSalt::NotVerified => { return server.finalise_not_email_verified(email).await }
+				SigninS1GetSalt::InvalidEmail => { return server.finalise_invalid_email(email).await }
 			};
 
 			let signin_attempt_id = SigninAttemptID::generate();
@@ -283,10 +292,67 @@ pub trait ServerSigninS1: Sized {
 			};
 			server.send_response(&response).await?;
 
+			server.process_extra_data_post(&extra_data).await?;
 			server.finalise().await
 		}
 
 		SealedFutureImpl::new(self, run_signin_s1)
+	}
+}
+
+pub trait ServerSigninS2: Sized {
+	type Error: From<crate::Error>;
+	type EndRV;
+
+	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS2Request, Self::Error>>;
+	fn fetch_inprogress_signin(&mut self) -> impl Future<Output = Result<SigninS1InProgress, Self::Error>>;
+	fn fetch_user_info(&mut self) -> impl Future<Output = Result<SigninS2UserInfo, Self::Error>>;
+	fn finalise_invalid_password_verifier(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn store_text_challenge(&mut self, signin_attempt_id: &SigninAttemptID, challenge: &TextChallenge) -> impl Future<Output = Result<(), Self::Error>>;
+	fn send_response(&mut self, response: &SigninS2Response) -> impl Future<Output = Result<(), Self::Error>>;
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
+		async fn run_signin_s2<S: ServerSigninS2>(
+			mut server: S
+		) -> Result<S::EndRV, S::Error> {
+			let SigninS2Request {
+				signin_attempt_id,
+				password_verifier
+			} = server.receive_request().await?;
+
+			let SigninS1InProgress {
+				email,
+				signin_attempt_id
+			} = server.fetch_inprogress_signin().await?;
+
+			let SigninS2UserInfo {
+				verifier_salt,
+				hashed_password_verifier,
+				encrypted_private_key
+			} = server.fetch_user_info().await?;
+
+			let sent_hashed_password_verifier = HashedPasswordVerifier::from_password_verifier_and_salt(&password_verifier, &verifier_salt)?;
+
+			let hpv_same = ::constant_time_eq::constant_time_eq_n(
+				hashed_password_verifier.as_bytes(),
+				sent_hashed_password_verifier.as_bytes()
+			);
+			if !hpv_same { return server.finalise_invalid_password_verifier().await }
+
+			let text_challenge = TextChallenge::generate();
+			server.store_text_challenge(&signin_attempt_id, &text_challenge).await?;
+
+			let response = SigninS2Response {
+				encrypted_private_key,
+				text_challenge
+			};
+			server.send_response(&response).await?;
+
+			server.finalise().await
+		}
+
+		SealedFutureImpl::new(self, run_signin_s2)
 	}
 }
 

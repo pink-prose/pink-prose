@@ -22,7 +22,7 @@ impl HashedPasswordVerifier {
 		Ok(Self(hash))
 	}
 
-	// pub(crate) fn to_string(&self) -> String {
-	// 	self.0.to_string()
-	// }
+	pub(crate) fn as_bytes(&self) -> &[u8; 32] {
+		self.0.hash_bytes()
+	}
 }
