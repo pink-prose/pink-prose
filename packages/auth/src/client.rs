@@ -8,6 +8,7 @@ use crate::structs::{
 	PasswordKey,
 	PasswordVerifier,
 	Salt,
+	SigninS1Form,
 	SigninS1Request,
 	SigninS1Response,
 	SignupData,
@@ -172,27 +173,37 @@ pub trait ClientSignup: Sized {
 pub trait ClientSigninS1: Sized {
 	type Error: From<crate::Error>;
 	type ExtraData;
+	type EndRV;
 
-	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-	fn get_user_extra_data(&mut self) -> impl Future<Output = Result<Self::ExtraData, Self::Error>>;
-	fn submit_request(&mut self, req: &SigninS1Request, extra_data: &Self::ExtraData) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
+	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninS1Form<Self::ExtraData>, Self::Error>>;
+	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+	fn submit_request(&mut self, request: &SigninS1Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
+	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+	fn finalise(self, response: SigninS1Response) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
-	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signin_s1<C: ClientSigninS1>(
 			mut client: C
-		) -> Result<(), C::Error> {
-			let email = client.get_user_email().await?;
-			let extra_data = client.get_user_extra_data().await?;
+		) -> Result<C::EndRV, C::Error> {
+			let SigninS1Form {
+				email,
+				extra_data
+			} = client.get_signin_form().await?;
 
-			let req = SigninS1Request {
-				email
+			client.process_extra_data_pre(&extra_data).await?;
+
+			let request = SigninS1Request {
+				email,
+				extra_data
 			};
-			let SigninS1Response {
-				salt,
-				signin_attempt_id
-			} = client.submit_request(&req, &extra_data).await?;
+			let response = client.submit_request(&request).await?;
 
-			todo!()
+			client.process_extra_data_post(&request.extra_data).await?;
+			client.finalise(response).await
 		}
 
 		SealedFutureImpl::new(self, run_signin_s1)

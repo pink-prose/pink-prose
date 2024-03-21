@@ -11,6 +11,7 @@ use crate::structs::{
 	PublicKey,
 	Salt,
 	SigninAttemptID,
+	SigninS1GetSalt,
 	SigninS1InProgress,
 	SigninS1Request,
 	SigninS1Response,
@@ -57,6 +58,8 @@ pub trait ServerSignup: Sized {
 	///
 	/// Send verification email to the email and provided email verification token
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
+
+	fn send_response(&mut self, response: ()) -> impl Future<Output = Result<(), Self::Error>>;
 
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
@@ -116,6 +119,8 @@ pub trait ServerSignup: Sized {
 			// step 13: send an email verification, also containing the token (without waiting for verification,
 			// return as soon as its successfully sent)
 			server.send_verification_email(&data.email, &data.email_verification_token).await?;
+
+			server.send_response(()).await?;
 
 			server.process_extra_data_post(&data.extra_data).await?;
 			// step 14: finalise anything if necessary
@@ -236,33 +241,33 @@ pub trait ServerSignup: Sized {
 pub trait ServerSigninS1: Sized {
 	type Error: From<crate::Error>;
 	type ExtraData;
+	type EndRV;
 
-	fn receive_request(&mut self) -> impl Future<Output = Result<(SigninS1Request, Self::ExtraData), Self::Error>>;
-	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
-	fn get_salt_and_is_verified(&mut self) -> impl Future<Output = Result<(Salt, bool), Self::Error>>;
-	fn finalise_not_email_verified(self, email: &Email) -> impl Future<Output = Result<(), Self::Error>>;
-	fn store_inprogress_signins(&mut self, in_progress_data: &SigninS1InProgress) -> impl Future<Output = Result<(), Self::Error>>;
-	fn send_response(&mut self, response: &SigninS1Response) -> impl Future<Output = Result<(), Self::Error>>;
-	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
+	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS1Request<Self::ExtraData>, Self::Error>>;
+	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
+	fn get_salt_and_is_verified(&mut self) -> impl Future<Output = Result<SigninS1GetSalt, Self::Error>>;
+	fn finalise_not_email_verified(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn store_inprogress_signin(&mut self, in_progress_data: &SigninS1InProgress) -> impl Future<Output = Result<(), Self::Error>>;
+	fn send_response(&mut self, response: &SigninS1Response) -> impl Future<Output = Result<(), Self::Error>>;
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
-	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signin_s1<S: ServerSigninS1>(
 			mut server: S
-		) -> Result<(), S::Error> {
-			let (SigninS1Request {
-				email
-			}, extra_data) = server.receive_request().await?;
+		) -> Result<S::EndRV, S::Error> {
+			let SigninS1Request {
+				email,
+				extra_data
+			} = server.receive_request().await?;
 
 			server.process_extra_data_pre(&extra_data).await?;
 
-			let (salt, is_verified) = server.get_salt_and_is_verified().await?;
-
-			if !is_verified {
-				server.finalise_not_email_verified(&email).await?;
-				return Ok(())
-			}
+			let salt = match server.get_salt_and_is_verified().await? {
+				SigninS1GetSalt::Verified(salt) => { salt }
+				SigninS1GetSalt::NotVerified => { return server.finalise_not_email_verified(email).await }
+			};
 
 			let signin_attempt_id = SigninAttemptID::generate();
 
@@ -270,18 +275,15 @@ pub trait ServerSigninS1: Sized {
 				email,
 				signin_attempt_id
 			};
-			server.store_inprogress_signins(&in_progress_data).await?;
+			server.store_inprogress_signin(&in_progress_data).await?;
 
 			let response = SigninS1Response {
 				salt,
 				signin_attempt_id: in_progress_data.signin_attempt_id
 			};
-
 			server.send_response(&response).await?;
 
-			server.finalise().await?;
-
-			Ok(())
+			server.finalise().await
 		}
 
 		SealedFutureImpl::new(self, run_signin_s1)

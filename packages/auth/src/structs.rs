@@ -38,7 +38,7 @@ pub mod signin_attempt_id;
 pub use self::signin_attempt_id::SigninAttemptID;
 
 pub mod signin_s1;
-pub use self::signin_s1::{ SigninS1Request, SigninS1Response, SigninS1InProgress };
+pub use self::signin_s1::{ SigninS1Form, SigninS1Request, SigninS1Response, SigninS1GetSalt, SigninS1InProgress };
 
 pub mod signup;
 pub use self::signup::{ SignupData, SignupForm, StoredSignupData };
