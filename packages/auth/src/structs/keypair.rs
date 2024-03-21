@@ -21,12 +21,6 @@ impl Generatable for Keypair {
 	}
 }
 
-impl Keypair {
-	// pub(crate) fn validate(&self) -> bool {
-	// 	self.private_key.0.public_key() == self.public_key.0
-	// }
-}
-
 pub struct PublicKey(::p384::PublicKey);
 
 impl StructsCommon for PublicKey {
