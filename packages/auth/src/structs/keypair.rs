@@ -1,6 +1,7 @@
 use crate::error::*;
 use super::{ ChaCha20Poly1305, PasswordKey, StructsCommon, Generatable };
 use ::p384::pkcs8::{ EncodePublicKey as _, EncodePrivateKey as _, DecodePublicKey as _, DecodePrivateKey as _, LineEnding::LF };
+use ::p384::ecdsa::{ Signature, signature::{ Signer, Verifier } };
 use ::rand::rngs::OsRng;
 
 pub struct Keypair {
@@ -38,6 +39,13 @@ impl StructsCommon for PublicKey {
 	}
 }
 
+impl PublicKey {
+	pub(crate) fn verify_signature(&self, bytes: &[u8], signature: &Signature) -> bool {
+		let key = ::p384::ecdsa::VerifyingKey::from(&self.0);
+		key.verify(bytes, signature).is_ok()
+	}
+}
+
 pub struct PrivateKey(::p384::SecretKey);
 
 impl StructsCommon for PrivateKey {
@@ -47,6 +55,13 @@ impl StructsCommon for PrivateKey {
 
 	fn from_str(s: &str) -> Result<Self> {
 		Ok(Self(::p384::SecretKey::from_pkcs8_pem(s)?))
+	}
+}
+
+impl PrivateKey {
+	pub(crate) fn sign_bytes(&self, bytes: &[u8]) -> Signature {
+		let key = ::p384::ecdsa::SigningKey::from(&self.0);
+		key.sign(bytes)
 	}
 }
 
@@ -74,6 +89,14 @@ impl EncryptedPrivateKey {
 		)?;
 
 		Ok(Self(encrypted))
+	}
+
+	pub(crate) fn into_private_key_with_password_key(self, password_key: &PasswordKey)
+		-> Result<PrivateKey>
+	{
+		let decrypted = self.0.decrypt_nonce0(*password_key.as_bytes())?;
+		let key_str = String::from_utf8(decrypted)?;
+		PrivateKey::from_str(&key_str)
 	}
 
 	// pub(crate) fn to_string(&self) -> String {

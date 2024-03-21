@@ -9,6 +9,8 @@ pub enum Error {
 	#[error("{0}")]
 	Argon2(::argon2::Error),
 	#[error(transparent)]
+	FromUTF8(#[from] ::std::string::FromUtf8Error),
+	#[error(transparent)]
 	Hex(#[from] ::hex::FromHexError),
 	#[error("email {0} is invalid")]
 	InvalidEmail(String),
@@ -16,6 +18,8 @@ pub enum Error {
 	P384PKCS8SPKI(#[from] ::p384::pkcs8::spki::Error),
 	#[error(transparent)]
 	P384PKCS8(#[from] ::p384::pkcs8::Error),
+	#[error(transparent)]
+	P384ECDSA(#[from] ::p384::ecdsa::Error),
 	#[error("invalid argon2 hash string")]
 	ParseArgon2,
 	#[error(transparent)]

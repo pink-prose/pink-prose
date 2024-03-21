@@ -34,20 +34,26 @@ pub use self::password_verifier::PasswordVerifier;
 pub mod salt;
 pub use self::salt::Salt;
 
+pub mod session;
+pub use self::session::{ SessionID, SessionClientInfo, SessionServerInfo };
+
 pub mod signin_attempt_id;
 pub use self::signin_attempt_id::SigninAttemptID;
 
 pub mod signin_s1;
-pub use self::signin_s1::{ SigninS1Form, SigninS1Request, SigninS1Response, SigninS1GetSalt, SigninS1InProgress };
+pub use self::signin_s1::{ SigninForm, SigninS1Request, SigninS1Response, SigninS1GetSalt, SigninS1InProgress };
 
 pub mod signin_s2;
-pub use self::signin_s2::{ SigninS2Form, SigninS2Request, SigninS2Response, SigninS2UserInfo };
+pub use self::signin_s2::{ SigninS2Form, SigninS2Request, SigninS2Response, SigninS2UserInfo, SigninS2InProgress };
+
+pub mod signin_s3;
+pub use self::signin_s3::{ SigninS3Request, SigninS3Response, SigninS3UserInfo };
 
 pub mod signup;
 pub use self::signup::{ SignupData, SignupForm, StoredSignupData };
 
 pub mod text_challenge;
-pub use self::text_challenge::TextChallenge;
+pub use self::text_challenge::{ TextChallenge, TextChallengeSignature };
 
 use crate::error::Result;
 

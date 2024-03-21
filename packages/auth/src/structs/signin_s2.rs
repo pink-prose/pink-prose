@@ -1,4 +1,5 @@
 use super::{
+	Email,
 	EncryptedPrivateKey,
 	HashedPasswordVerifier,
 	Password,
@@ -26,4 +27,10 @@ pub struct SigninS2UserInfo {
 	pub verifier_salt: Salt,
 	pub hashed_password_verifier: HashedPasswordVerifier,
 	pub encrypted_private_key: EncryptedPrivateKey
+}
+
+pub struct SigninS2InProgress {
+	pub email: Email,
+	pub signin_attempt_id: SigninAttemptID,
+	pub text_challenge: TextChallenge
 }

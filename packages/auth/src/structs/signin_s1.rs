@@ -1,7 +1,8 @@
-use super::{ Email, Salt, SigninAttemptID };
+use super::{ Email, Password, Salt, SigninAttemptID };
 
-pub struct SigninS1Form<ExtraData> {
+pub struct SigninForm<ExtraData> {
 	pub email: Email,
+	pub password: Password,
 	pub extra_data: ExtraData
 }
 

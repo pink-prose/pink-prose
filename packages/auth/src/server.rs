@@ -10,14 +10,20 @@ use crate::structs::{
 	PasswordVerifier,
 	PublicKey,
 	Salt,
+	SessionID,
+	SessionServerInfo,
 	SigninAttemptID,
 	SigninS1GetSalt,
 	SigninS1InProgress,
 	SigninS1Request,
 	SigninS1Response,
+	SigninS2InProgress,
 	SigninS2Request,
 	SigninS2Response,
 	SigninS2UserInfo,
+	SigninS3Request,
+	SigninS3Response,
+	SigninS3UserInfo,
 	SignupData,
 	StoredSignupData,
 	TextChallenge
@@ -305,8 +311,8 @@ pub trait ServerSigninS2: Sized {
 	type EndRV;
 
 	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS2Request, Self::Error>>;
-	fn fetch_inprogress_signin(&mut self) -> impl Future<Output = Result<SigninS1InProgress, Self::Error>>;
-	fn fetch_user_info(&mut self) -> impl Future<Output = Result<SigninS2UserInfo, Self::Error>>;
+	fn fetch_inprogress_signin(&mut self, signin_attempt_id: &SigninAttemptID) -> impl Future<Output = Result<SigninS1InProgress, Self::Error>>;
+	fn fetch_user_info(&mut self, email: &Email) -> impl Future<Output = Result<SigninS2UserInfo, Self::Error>>;
 	fn finalise_invalid_password_verifier(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 	fn store_text_challenge(&mut self, signin_attempt_id: &SigninAttemptID, challenge: &TextChallenge) -> impl Future<Output = Result<(), Self::Error>>;
 	fn send_response(&mut self, response: &SigninS2Response) -> impl Future<Output = Result<(), Self::Error>>;
@@ -324,13 +330,13 @@ pub trait ServerSigninS2: Sized {
 			let SigninS1InProgress {
 				email,
 				signin_attempt_id
-			} = server.fetch_inprogress_signin().await?;
+			} = server.fetch_inprogress_signin(&signin_attempt_id).await?;
 
 			let SigninS2UserInfo {
 				verifier_salt,
 				hashed_password_verifier,
 				encrypted_private_key
-			} = server.fetch_user_info().await?;
+			} = server.fetch_user_info(&email).await?;
 
 			let sent_hashed_password_verifier = HashedPasswordVerifier::from_password_verifier_and_salt(&password_verifier, &verifier_salt)?;
 
@@ -353,6 +359,72 @@ pub trait ServerSigninS2: Sized {
 		}
 
 		SealedFutureImpl::new(self, run_signin_s2)
+	}
+}
+
+pub trait ServerSigninS3: Sized {
+	type Error: From<crate::Error>;
+	type ExtraData;
+	type EndRV;
+
+	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS3Request<Self::ExtraData>, Self::Error>>;
+	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+	fn fetch_inprogress_signin(&mut self, signin_attempt_id: &SigninAttemptID) -> impl Future<Output = Result<SigninS2InProgress, Self::Error>>;
+	fn fetch_user_info(&mut self, email: &Email) -> impl Future<Output = Result<SigninS3UserInfo, Self::Error>>;
+	fn finalise_invalid_signature(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn store_session_info(&mut self, session_info: &SessionServerInfo) -> impl Future<Output = Result<(), Self::Error>>;
+	fn send_response(&mut self, response: &SigninS3Response) -> impl Future<Output = Result<(), Self::Error>>;
+	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
+		async fn run_signin_s3<S: ServerSigninS3>(
+			mut server: S
+		) -> Result<S::EndRV, S::Error> {
+			let SigninS3Request {
+				signin_attempt_id,
+				text_challenge_signature,
+				session_public_key,
+				extra_data
+			} = server.receive_request().await?;
+
+			server.process_extra_data_pre(&extra_data).await?;
+
+			let SigninS2InProgress {
+				email,
+				signin_attempt_id,
+				text_challenge
+			} = server.fetch_inprogress_signin(&signin_attempt_id).await?;
+
+			let SigninS3UserInfo {
+				public_key
+			} = server.fetch_user_info(&email).await?;
+
+			let verified = text_challenge.verify(&public_key, &text_challenge_signature);
+			if !verified { return server.finalise_invalid_signature(email).await }
+
+			let session_id = SessionID::generate();
+
+			let session_info = SessionServerInfo {
+				session_id,
+				session_public_key
+			};
+			server.store_session_info(&session_info).await?;
+
+			let response = SigninS3Response {
+				session_id: session_info.session_id
+			};
+			server.send_response(&response).await?;
+
+			server.process_extra_data_post(&extra_data).await?;
+			server.finalise().await
+		}
+
+		SealedFutureImpl::new(self, run_signin_s3)
 	}
 }
 

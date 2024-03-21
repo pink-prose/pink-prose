@@ -1,5 +1,6 @@
 use crate::error::*;
-use super::{ StructsCommon, Generatable };
+use super::{ PublicKey, PrivateKey, StructsCommon, Generatable };
+use ::p384::ecdsa::Signature;
 use ::rand::{ Rng as _, rngs::OsRng };
 
 pub struct TextChallenge([u8; 64]);
@@ -22,5 +23,27 @@ impl Generatable for TextChallenge {
 		let mut bytes = [0u8; 64];
 		OsRng.fill(&mut bytes);
 		Self(bytes)
+	}
+}
+
+impl TextChallenge {
+	pub(crate) fn sign(&self, private_key: &PrivateKey) -> TextChallengeSignature {
+		TextChallengeSignature(private_key.sign_bytes(&self.0))
+	}
+
+	pub(crate) fn verify(&self, public_key: &PublicKey, signature: &TextChallengeSignature) -> bool {
+		public_key.verify_signature(&self.0, &signature.0)
+	}
+}
+
+pub struct TextChallengeSignature(Signature);
+
+impl StructsCommon for TextChallengeSignature {
+	fn to_string(&self) -> Result<String> {
+		Ok(self.0.to_string())
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		Ok(Self(s.parse()?))
 	}
 }

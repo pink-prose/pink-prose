@@ -8,12 +8,15 @@ use crate::structs::{
 	PasswordKey,
 	PasswordVerifier,
 	Salt,
-	SigninS1Form,
+	SessionClientInfo,
+	SigninForm,
 	SigninS1Request,
 	SigninS1Response,
 	SigninS2Form,
 	SigninS2Request,
 	SigninS2Response,
+	SigninS3Request,
+	SigninS3Response,
 	SignupData,
 	SignupForm,
 	StructsCommon as _
@@ -173,27 +176,31 @@ pub trait ClientSignup: Sized {
 // 	}
 // }
 
-pub trait ClientSigninS1: Sized {
+pub trait ClientSignin: Sized {
 	type Error: From<crate::Error>;
 	type ExtraData;
 	type EndRV;
 
-	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninS1Form<Self::ExtraData>, Self::Error>>;
+	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninForm<Self::ExtraData>, Self::Error>>;
 	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
 	fn submit_s1_request(&mut self, request: &SigninS1Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
+	fn submit_s2_request(&mut self, request: &SigninS2Request) -> impl Future<Output = Result<SigninS2Response, Self::Error>>;
+	fn submit_s3_request(&mut self, request: &SigninS3Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS3Response, Self::Error>>;
+	fn store_session(&mut self, session: &SessionClientInfo) -> impl Future<Output = Result<(), Self::Error>>;
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
-	fn finalise(self, response: SigninS1Response) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	// fn finalise(self, response: SigninS2Response) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
-		async fn run_signin_s1<C: ClientSigninS1>(
+		async fn run_signin<C: ClientSignin>(
 			mut client: C
 		) -> Result<C::EndRV, C::Error> {
-			let SigninS1Form {
+			let SigninForm {
 				email,
+				password,
 				extra_data
 			} = client.get_signin_form().await?;
 
@@ -203,37 +210,13 @@ pub trait ClientSigninS1: Sized {
 				email,
 				extra_data
 			};
-			let response = client.submit_s1_request(&request).await?;
-
-			client.process_extra_data_post(&request.extra_data).await?;
-			client.finalise(response).await
-		}
-
-		SealedFutureImpl::new(self, run_signin_s1)
-	}
-}
-
-pub trait ClientSigninS2: Sized {
-	type Error: From<crate::Error>;
-	type EndRV;
-
-	fn get_s1_result(&mut self) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
-	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninS2Form, Self::Error>>;
-	fn submit_s2_request(&mut self, request: &SigninS2Request) -> impl Future<Output = Result<SigninS2Response, Self::Error>>;
-	fn finalise(self, response: SigninS2Response) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
-
-	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
-		async fn run_signin_s2<C: ClientSigninS2>(
-			mut client: C
-		) -> Result<C::EndRV, C::Error> {
 			let SigninS1Response {
 				salt,
 				signin_attempt_id
-			} = client.get_s1_result().await?;
+			} = client.submit_s1_request(&request).await?;
 
-			let SigninS2Form {
-				password
-			} = client.get_signin_form().await?;
+			// so we can use it later lol
+			let SigninS1Request { extra_data, .. } = request;
 
 			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
 			let password_verifier = PasswordVerifier::from_password_key(&password_key);
@@ -242,12 +225,40 @@ pub trait ClientSigninS2: Sized {
 				signin_attempt_id,
 				password_verifier
 			};
-			let response = client.submit_s2_request(&request).await?;
+			let SigninS2Response {
+				encrypted_private_key,
+				text_challenge
+			} = client.submit_s2_request(&request).await?;
 
-			client.finalise(response).await
+			let private_key = encrypted_private_key.into_private_key_with_password_key(&password_key)?;
+			let text_challenge_signature = text_challenge.sign(&private_key);
+
+			let Keypair {
+				public_key: session_public_key,
+				private_key: session_private_key
+			} = Keypair::generate();
+
+			let request = SigninS3Request {
+				signin_attempt_id: request.signin_attempt_id,
+				text_challenge_signature,
+				session_public_key,
+				extra_data
+			};
+			let SigninS3Response {
+				session_id
+			} = client.submit_s3_request(&request).await?;
+
+			let session = SessionClientInfo {
+				session_id,
+				session_private_key
+			};
+			client.store_session(&session).await?;
+
+			client.process_extra_data_post(&request.extra_data).await?;
+			todo!()
 		}
 
-		SealedFutureImpl::new(self, run_signin_s2)
+		SealedFutureImpl::new(self, run_signin)
 	}
 }
 
