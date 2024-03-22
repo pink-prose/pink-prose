@@ -31,4 +31,6 @@ fn Home() -> impl IntoView {
 }
 
 #[component]
-fn NotFound() -> impl IntoView {}
+fn NotFound() -> impl IntoView {
+	"404 not found"
+}
