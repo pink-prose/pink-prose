@@ -30,28 +30,14 @@ pub trait ClientSignup: Sized {
 	type Error: From<crate::Error>;
 	type EndRV;
 
-	/// Part of signup step 1
-	///
-	/// Gets the user email, password, and other things, ex. from a signup form
 	fn get_signup_form(&mut self) -> impl Future<Output = Result<SignupForm, Self::Error>>;
-
-	/// Part of signup step 7
-	///
-	/// Submit all the information here, and the extra data if you need, to the
-	/// server for futher processing
 	fn submit_request(&mut self, signup_data: &SignupRequest) -> impl Future<Output = Result<SignupResponse, Self::Error>>;
-
-	/// Part of signup step 16
-	///
-	/// Perform any finalisation if necessary.
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
-	/// Run signup client.
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signup<C: ClientSignup>(
 			mut client: C
 		) -> Result<C::EndRV, C::Error> {
-			// step 1: get user details
 			let SignupForm {
 				email,
 				password

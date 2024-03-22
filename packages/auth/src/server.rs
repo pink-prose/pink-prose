@@ -36,47 +36,18 @@ pub trait ServerSignup: Sized {
 	type Error: From<crate::Error>;
 	type EndRV;
 
-	/// Part of step 7.5
-	///
-	/// Receives request information from the client.
 	fn receive_request(&mut self) -> impl Future<Output = Result<SignupRequest, Self::Error>>;
-
-	/// Part of step 9
-	///
-	/// Ensure the email is unique (ie. it doesn't already exist in the verified
-	/// or unverified users database, or otherwise in any way, in the db) (ie.
-	/// make sure that this is valid to make a new account with the email / extra
-	/// data)
 	fn ensure_unique_and_reserve(&mut self, email: &Email) -> impl Future<Output = Result<bool, Self::Error>>;
-
 	fn finalise_email_not_unique(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
-
-	/// Part of step 12
-	///
-	/// Store the details and extra data so they can be retrieved later
 	fn store_unverified_user_data(&mut self, data: &StoredSignupData) -> impl Future<Output = Result<(), Self::Error>>;
-
-	/// Part of step 13
-	///
-	/// Send verification email to the email and provided email verification token
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
-
 	fn send_response(&mut self, response: &SignupResponse) -> impl Future<Output = Result<(), Self::Error>>;
-
-	/// Part of step 14
-	///
-	/// Finalise anything if necessary. You can return back to the user in this
-	/// function or after the run function returns, whichever is more convenient
-	/// for you and whatever server lib you're using.
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
-	/// Run signup server.
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signup<S: ServerSignup>(
 			mut server: S
 		) -> Result<S::EndRV, S::Error> {
-			// step 7.5: get the data that the client submitted in step 7,
-			// and the extra data if that needed to be sent.
 			let SignupRequest {
 				email,
 				salt,
@@ -85,21 +56,14 @@ pub trait ServerSignup: Sized {
 				encrypted_private_key
 			} = server.receive_request().await?;
 
-			// step 9: make sure the email is available
 			let unique = server.ensure_unique_and_reserve(&email).await?;
 			if !unique { return server.finalise_email_not_unique().await }
 
-			// step 10: generate salt to hash the verifier, then hash it
 			let verifier_salt = Salt::generate();
 			let hashed_password_verifier = HashedPasswordVerifier::from_password_verifier_and_salt(&password_verifier, &salt)?;
 
-			// step 11: generate an email token
 			let email_verification_token = EmailVerificationToken::generate();
 
-			// step 12: store email, salt, hashed password verifier, verifier salt,
-			// pub key, encrypted priv key, email verification token (in an array
-			// to ensure multiple can be stored together), and do it in a seperate
-			// unverified users DB
 			let data = StoredSignupData {
 				email,
 				salt,
@@ -111,15 +75,12 @@ pub trait ServerSignup: Sized {
 			};
 			server.store_unverified_user_data(&data).await?;
 
-			// step 13: send an email verification, also containing the token (without waiting for verification,
-			// return as soon as its successfully sent)
 			server.send_verification_email(&data.email, &data.email_verification_token).await?;
 
 			let response = SignupResponse {
 			};
 			server.send_response(&response).await?;
 
-			// step 14: finalise anything if necessary
 			server.finalise().await
 		}
 
