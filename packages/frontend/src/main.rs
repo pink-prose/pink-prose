@@ -5,7 +5,7 @@ async fn main() {
 	use ::actix_web::*;
 	use ::leptos::*;
 	use ::leptos_actix::{ generate_route_list, LeptosRoutes };
-	use ::nameplaceholder_frontend::App;
+	use ::pinkprose_frontend::App;
 
 	let cfg = get_configuration(None).await.unwrap();
 	let address = cfg.leptos_options.site_addr;

@@ -1,5 +1,5 @@
 [package]
-name = "nameplaceholder-db"
+name = "pinkprose-db"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
