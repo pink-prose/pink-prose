@@ -5,12 +5,12 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 // TODO: enable these
-// #[cfg(feature = "client")]
-mod client;
+#[cfg(feature = "client")]
+pub mod client;
 
 // TODO: enable these
-// #[cfg(feature = "server")]
-mod server;
+#[cfg(feature = "server")]
+pub mod server;
 
 mod error;
 mod sealed_future;
