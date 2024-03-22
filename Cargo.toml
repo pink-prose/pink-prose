@@ -2,7 +2,8 @@
 resolver = "2"
 members = [
 	"packages/auth",
-	"packages/db"
+	"packages/db",
+	"packages/frontend"
 ]
 
 [workspace.package]
@@ -13,3 +14,10 @@ license = "AGPL-3.0-only"
 [workspace.dependencies]
 serde = { version = "1.0.197", features = ["derive"] }
 thiserror = "1.0.58"
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
