@@ -31,6 +31,9 @@ pub use self::password_reset_token::PasswordResetToken;
 pub mod password_verifier;
 pub use self::password_verifier::PasswordVerifier;
 
+pub mod request_verification_email;
+pub use self::request_verification_email::{ VerificationEmailForm, VerificationEmailRequest };
+
 pub mod salt;
 pub use self::salt::Salt;
 

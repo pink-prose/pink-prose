@@ -20,7 +20,9 @@ use crate::structs::{
 	SignupRequest,
 	SignupResponse,
 	SignupForm,
-	StructsCommon as _
+	StructsCommon as _,
+	VerificationEmailForm,
+	VerificationEmailRequest
 };
 use ::std::future::{ Future, IntoFuture };
 
@@ -102,33 +104,45 @@ pub trait ClientSignup: Sized {
 	}
 }
 
-// pub trait ClientRequestVerificationEmail: Sized {
-// 	type Error: From<crate::Error>;
-// 	type ExtraData;
+pub trait ClientRequestVerificationEmail: Sized {
+	type Error: From<crate::Error>;
+	type ExtraData;
+	type EndRV;
 
-// 	fn get_user_email(&mut self) -> impl Future<Output = Result<Email, Self::Error>>;
-// 	fn get_user_extra_data(&mut self) -> impl Future<Output = Result<Self::ExtraData, Self::Error>>;
-// 	fn submit_request(&mut self, email: &Email, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
-// 	fn finalise(self) -> impl Future<Output = Result<(), Self::Error>> {
-// 		async { Ok(()) }
-// 	}
+	fn get_verification_email_form(&mut self) -> impl Future<Output = Result<VerificationEmailForm<Self::ExtraData>, Self::Error>>;
+	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+	fn submit_request(&mut self, request: &VerificationEmailRequest<Self::ExtraData>) -> impl Future<Output = Result<(), Self::Error>>;
+	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
+		async { Ok(()) }
+	}
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
-// 	fn run(self) -> impl SealedFuture<Result<(), Self::Error>> {
-// 		async fn run_request_verification_email<C: ClientRequestVerificationEmail>(
-// 			mut client: C
-// 		) -> Result<(), C::Error> {
-// 			let email = client.get_user_email().await?;
-// 			let extra_data = client.get_user_extra_data().await?;
+	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
+		async fn run_request_verification_email<C: ClientRequestVerificationEmail>(
+			mut client: C
+		) -> Result<C::EndRV, C::Error> {
+			let VerificationEmailForm {
+				email,
+				extra_data
+			} = client.get_verification_email_form().await?;
 
-// 			client.submit_request(&email, &extra_data).await?;
+			client.process_extra_data_pre(&extra_data).await?;
 
-// 			client.finalise().await?;
-// 			Ok(())
-// 		}
+			let request = VerificationEmailRequest {
+				email,
+				extra_data
+			};
+			client.submit_request(&request).await?;
 
-// 		SealedFutureImpl::new(self, run_request_verification_email)
-// 	}
-// }
+			client.process_extra_data_post(&request.extra_data).await?;
+			client.finalise().await
+		}
+
+		SealedFutureImpl::new(self, run_request_verification_email)
+	}
+}
 
 // pub trait ClientRequestPasswordReset: Sized {
 // 	type Error: From<crate::Error>;
