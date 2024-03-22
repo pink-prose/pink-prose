@@ -34,23 +34,12 @@ use ::std::future::{ Future, IntoFuture };
 
 pub trait ServerSignup: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
 	/// Part of step 7.5
 	///
 	/// Receives request information from the client.
-	fn receive_request(&mut self) -> impl Future<Output = Result<SignupRequest<Self::ExtraData>, Self::Error>>;
-
-	/// Part of step 8
-	///
-	/// Processes extra data obtained by the client. Ex. redeeming captcha tokens
-	///
-	/// There is a default implementation, so you don't have to implement this if
-	/// you don't need to use it
-	fn process_extra_data_pre(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn receive_request(&mut self) -> impl Future<Output = Result<SignupRequest, Self::Error>>;
 
 	/// Part of step 9
 	///
@@ -58,14 +47,14 @@ pub trait ServerSignup: Sized {
 	/// or unverified users database, or otherwise in any way, in the db) (ie.
 	/// make sure that this is valid to make a new account with the email / extra
 	/// data)
-	fn ensure_unique_and_reserve(&mut self, email: &Email, extra_data: &Self::ExtraData) -> impl Future<Output = Result<bool, Self::Error>>;
+	fn ensure_unique_and_reserve(&mut self, email: &Email) -> impl Future<Output = Result<bool, Self::Error>>;
 
 	fn finalise_email_not_unique(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	/// Part of step 12
 	///
 	/// Store the details and extra data so they can be retrieved later
-	fn store_unverified_user_data(&mut self, data: &StoredSignupData<Self::ExtraData>) -> impl Future<Output = Result<(), Self::Error>>;
+	fn store_unverified_user_data(&mut self, data: &StoredSignupData) -> impl Future<Output = Result<(), Self::Error>>;
 
 	/// Part of step 13
 	///
@@ -73,8 +62,6 @@ pub trait ServerSignup: Sized {
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
 
 	fn send_response(&mut self, response: &SignupResponse) -> impl Future<Output = Result<(), Self::Error>>;
-
-	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	/// Part of step 14
 	///
@@ -95,16 +82,11 @@ pub trait ServerSignup: Sized {
 				salt,
 				password_verifier,
 				public_key,
-				encrypted_private_key,
-				extra_data
+				encrypted_private_key
 			} = server.receive_request().await?;
 
-			// step 8: process extra data if necessary
-			server.process_extra_data_pre(&extra_data).await?;
-
-			// step 9: make sure the email is available. Extra data is
-			// passed here too so you can ex. check a username
-			let unique = server.ensure_unique_and_reserve(&email, &extra_data).await?;
+			// step 9: make sure the email is available
+			let unique = server.ensure_unique_and_reserve(&email).await?;
 			if !unique { return server.finalise_email_not_unique().await }
 
 			// step 10: generate salt to hash the verifier, then hash it
@@ -125,8 +107,7 @@ pub trait ServerSignup: Sized {
 				verifier_salt,
 				public_key,
 				encrypted_private_key,
-				email_verification_token,
-				extra_data
+				email_verification_token
 			};
 			server.store_unverified_user_data(&data).await?;
 
@@ -138,7 +119,6 @@ pub trait ServerSignup: Sized {
 			};
 			server.send_response(&response).await?;
 
-			server.process_extra_data_post(&data.extra_data).await?;
 			// step 14: finalise anything if necessary
 			server.finalise().await
 		}
@@ -149,18 +129,11 @@ pub trait ServerSignup: Sized {
 
 pub trait ServerRequestVerificationEmail: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
-	fn receive_request(&mut self) -> impl Future<Output = Result<VerificationEmailRequest<Self::ExtraData>, Self::Error>>;
-	fn process_extra_data_pre(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn receive_request(&mut self) -> impl Future<Output = Result<VerificationEmailRequest, Self::Error>>;
 	fn check_email_in_unverified(&mut self, email: &Email) -> impl Future<Output = Result<bool, Self::Error>>;
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
-	fn process_extra_data_post(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
 	fn finalise(self, sent: bool) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
@@ -168,11 +141,8 @@ pub trait ServerRequestVerificationEmail: Sized {
 			mut server: S
 		) -> Result<S::EndRV, S::Error> {
 			let VerificationEmailRequest {
-				email,
-				extra_data
+				email
 			} = server.receive_request().await?;
-
-			server.process_extra_data_pre(&extra_data).await?;
 
 			if !server.check_email_in_unverified(&email).await? {
 				// silent early bail
@@ -182,7 +152,6 @@ pub trait ServerRequestVerificationEmail: Sized {
 			let email_verification_token = EmailVerificationToken::generate();
 			server.send_verification_email(&email, &email_verification_token).await?;
 
-			server.process_extra_data_post(&extra_data).await?;
 			server.finalise(true).await
 		}
 
@@ -256,21 +225,14 @@ pub trait ServerRequestVerificationEmail: Sized {
 
 pub trait ServerSigninS1: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
-	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS1Request<Self::ExtraData>, Self::Error>>;
-	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS1Request, Self::Error>>;
 	fn get_salt_and_is_verified(&mut self) -> impl Future<Output = Result<SigninS1GetSalt, Self::Error>>;
 	fn finalise_not_email_verified(self, email: &Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 	fn finalise_invalid_email(self, email: &Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 	fn store_inprogress_signin(&mut self, in_progress_data: &SigninS1InProgress) -> impl Future<Output = Result<(), Self::Error>>;
 	fn send_response(&mut self, response: &SigninS1Response) -> impl Future<Output = Result<(), Self::Error>>;
-	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
@@ -278,11 +240,8 @@ pub trait ServerSigninS1: Sized {
 			mut server: S
 		) -> Result<S::EndRV, S::Error> {
 			let SigninS1Request {
-				email,
-				extra_data
+				email
 			} = server.receive_request().await?;
-
-			server.process_extra_data_pre(&extra_data).await?;
 
 			let salt = match server.get_salt_and_is_verified().await? {
 				SigninS1GetSalt::Verified(salt) => { salt }
@@ -304,7 +263,6 @@ pub trait ServerSigninS1: Sized {
 			};
 			server.send_response(&response).await?;
 
-			server.process_extra_data_post(&extra_data).await?;
 			server.finalise().await
 		}
 
@@ -370,21 +328,14 @@ pub trait ServerSigninS2: Sized {
 
 pub trait ServerSigninS3: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
-	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS3Request<Self::ExtraData>, Self::Error>>;
-	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn receive_request(&mut self) -> impl Future<Output = Result<SigninS3Request, Self::Error>>;
 	fn fetch_inprogress_signin(&mut self, signin_attempt_id: &SigninAttemptID) -> impl Future<Output = Result<SigninS2InProgress, Self::Error>>;
 	fn fetch_user_info(&mut self, email: &Email) -> impl Future<Output = Result<SigninS3UserInfo, Self::Error>>;
 	fn finalise_invalid_signature(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 	fn store_session_info(&mut self, session_info: &SessionServerInfo) -> impl Future<Output = Result<(), Self::Error>>;
 	fn send_response(&mut self, response: &SigninS3Response) -> impl Future<Output = Result<(), Self::Error>>;
-	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
@@ -394,11 +345,8 @@ pub trait ServerSigninS3: Sized {
 			let SigninS3Request {
 				signin_attempt_id,
 				text_challenge_signature,
-				session_public_key,
-				extra_data
+				session_public_key
 			} = server.receive_request().await?;
-
-			server.process_extra_data_pre(&extra_data).await?;
 
 			let SigninS2InProgress {
 				email,
@@ -426,7 +374,6 @@ pub trait ServerSigninS3: Sized {
 			};
 			server.send_response(&response).await?;
 
-			server.process_extra_data_post(&extra_data).await?;
 			server.finalise().await
 		}
 

@@ -1,14 +1,12 @@
 use super::{ Email, Password, Salt, SigninAttemptID };
 
-pub struct SigninForm<ExtraData> {
+pub struct SigninForm {
 	pub email: Email,
-	pub password: Password,
-	pub extra_data: ExtraData
+	pub password: Password
 }
 
-pub struct SigninS1Request<ExtraData> {
-	pub email: Email,
-	pub extra_data: ExtraData
+pub struct SigninS1Request {
+	pub email: Email
 }
 
 pub struct SigninS1Response {

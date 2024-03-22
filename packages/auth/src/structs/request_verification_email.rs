@@ -1,11 +1,9 @@
 use super::Email;
 
-pub struct VerificationEmailForm<ExtraData> {
-	pub email: Email,
-	pub extra_data: ExtraData
+pub struct VerificationEmailForm {
+	pub email: Email
 }
 
-pub struct VerificationEmailRequest<ExtraData> {
-	pub email: Email,
-	pub extra_data: ExtraData
+pub struct VerificationEmailRequest {
+	pub email: Email
 }

@@ -12,6 +12,7 @@ impl StructsCommon for Password {
 		Ok(Self(s.into()))
 	}
 }
+
 impl Password {
 	pub(crate) fn as_str(&self) -> &str {
 		&self.0

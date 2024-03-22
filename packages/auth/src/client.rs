@@ -28,34 +28,18 @@ use ::std::future::{ Future, IntoFuture };
 
 pub trait ClientSignup: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
 	/// Part of signup step 1
 	///
 	/// Gets the user email, password, and other things, ex. from a signup form
-	fn get_signup_form(&mut self) -> impl Future<Output = Result<SignupForm<Self::ExtraData>, Self::Error>>;
-
-	/// Part of signup step 2
-	///
-	/// Gives you the opportunity to do anything you would like to with the extra
-	/// data.
-	///
-	/// There is a default implementation, so you don't have to implement this if
-	/// you don't need to use it
-	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn get_signup_form(&mut self) -> impl Future<Output = Result<SignupForm, Self::Error>>;
 
 	/// Part of signup step 7
 	///
 	/// Submit all the information here, and the extra data if you need, to the
 	/// server for futher processing
-	fn submit_request(&mut self, signup_data: &SignupRequest<Self::ExtraData>) -> impl Future<Output = Result<SignupResponse, Self::Error>>;
-
-	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn submit_request(&mut self, signup_data: &SignupRequest) -> impl Future<Output = Result<SignupResponse, Self::Error>>;
 
 	/// Part of signup step 16
 	///
@@ -70,11 +54,8 @@ pub trait ClientSignup: Sized {
 			// step 1: get user details
 			let SignupForm {
 				email,
-				password,
-				extra_data
+				password
 			} = client.get_signup_form().await?;
-
-			client.process_extra_data_pre(&extra_data).await?;
 
 			let Keypair { public_key, private_key } = Keypair::generate();
 			let salt = Salt::generate();
@@ -91,12 +72,10 @@ pub trait ClientSignup: Sized {
 				salt,
 				password_verifier,
 				public_key,
-				encrypted_private_key,
-				extra_data
+				encrypted_private_key
 			};
 			client.submit_request(&signup_data).await?;
 
-			client.process_extra_data_post(&signup_data.extra_data).await?;
 			client.finalise().await
 		}
 
@@ -106,17 +85,10 @@ pub trait ClientSignup: Sized {
 
 pub trait ClientRequestVerificationEmail: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
-	fn get_verification_email_form(&mut self) -> impl Future<Output = Result<VerificationEmailForm<Self::ExtraData>, Self::Error>>;
-	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
-	fn submit_request(&mut self, request: &VerificationEmailRequest<Self::ExtraData>) -> impl Future<Output = Result<(), Self::Error>>;
-	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
+	fn get_verification_email_form(&mut self) -> impl Future<Output = Result<VerificationEmailForm, Self::Error>>;
+	fn submit_request(&mut self, request: &VerificationEmailRequest) -> impl Future<Output = Result<(), Self::Error>>;
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
@@ -124,19 +96,14 @@ pub trait ClientRequestVerificationEmail: Sized {
 			mut client: C
 		) -> Result<C::EndRV, C::Error> {
 			let VerificationEmailForm {
-				email,
-				extra_data
+				email
 			} = client.get_verification_email_form().await?;
 
-			client.process_extra_data_pre(&extra_data).await?;
-
 			let request = VerificationEmailRequest {
-				email,
-				extra_data
+				email
 			};
 			client.submit_request(&request).await?;
 
-			client.process_extra_data_post(&request.extra_data).await?;
 			client.finalise().await
 		}
 
@@ -193,20 +160,13 @@ pub trait ClientRequestVerificationEmail: Sized {
 
 pub trait ClientSignin: Sized {
 	type Error: From<crate::Error>;
-	type ExtraData;
 	type EndRV;
 
-	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninForm<Self::ExtraData>, Self::Error>>;
-	fn process_extra_data_pre(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
-	fn submit_s1_request(&mut self, request: &SigninS1Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
+	fn get_signin_form(&mut self) -> impl Future<Output = Result<SigninForm, Self::Error>>;
+	fn submit_s1_request(&mut self, request: &SigninS1Request) -> impl Future<Output = Result<SigninS1Response, Self::Error>>;
 	fn submit_s2_request(&mut self, request: &SigninS2Request) -> impl Future<Output = Result<SigninS2Response, Self::Error>>;
-	fn submit_s3_request(&mut self, request: &SigninS3Request<Self::ExtraData>) -> impl Future<Output = Result<SigninS3Response, Self::Error>>;
+	fn submit_s3_request(&mut self, request: &SigninS3Request) -> impl Future<Output = Result<SigninS3Response, Self::Error>>;
 	fn store_session(&mut self, session: &SessionClientInfo) -> impl Future<Output = Result<(), Self::Error>>;
-	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
-		async { Ok(()) }
-	}
 	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
@@ -215,23 +175,16 @@ pub trait ClientSignin: Sized {
 		) -> Result<C::EndRV, C::Error> {
 			let SigninForm {
 				email,
-				password,
-				extra_data
+				password
 			} = client.get_signin_form().await?;
 
-			client.process_extra_data_pre(&extra_data).await?;
-
 			let request = SigninS1Request {
-				email,
-				extra_data
+				email
 			};
 			let SigninS1Response {
 				salt,
 				signin_attempt_id
 			} = client.submit_s1_request(&request).await?;
-
-			// so we can use it later lol
-			let SigninS1Request { extra_data, .. } = request;
 
 			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
 			let password_verifier = PasswordVerifier::from_password_key(&password_key);
@@ -256,8 +209,7 @@ pub trait ClientSignin: Sized {
 			let request = SigninS3Request {
 				signin_attempt_id: request.signin_attempt_id,
 				text_challenge_signature,
-				session_public_key,
-				extra_data
+				session_public_key
 			};
 			let SigninS3Response {
 				session_id
@@ -269,7 +221,6 @@ pub trait ClientSignin: Sized {
 			};
 			client.store_session(&session).await?;
 
-			client.process_extra_data_post(&request.extra_data).await?;
 			client.finalise().await
 		}
 
