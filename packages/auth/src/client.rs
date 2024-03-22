@@ -193,7 +193,7 @@ pub trait ClientSignin: Sized {
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
-	// fn finalise(self, response: SigninS2Response) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn finalise(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	fn run(self) -> impl SealedFuture<Result<Self::EndRV, Self::Error>> {
 		async fn run_signin<C: ClientSignin>(
@@ -256,7 +256,7 @@ pub trait ClientSignin: Sized {
 			client.store_session(&session).await?;
 
 			client.process_extra_data_post(&request.extra_data).await?;
-			todo!()
+			client.finalise().await
 		}
 
 		SealedFutureImpl::new(self, run_signin)
