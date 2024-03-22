@@ -50,7 +50,7 @@ pub mod signin_s3;
 pub use self::signin_s3::{ SigninS3Request, SigninS3Response, SigninS3UserInfo };
 
 pub mod signup;
-pub use self::signup::{ SignupData, SignupForm, StoredSignupData };
+pub use self::signup::{ SignupRequest, SignupResponse, SignupForm, StoredSignupData };
 
 pub mod text_challenge;
 pub use self::text_challenge::{ TextChallenge, TextChallengeSignature };

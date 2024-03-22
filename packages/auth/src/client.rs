@@ -17,7 +17,8 @@ use crate::structs::{
 	SigninS2Response,
 	SigninS3Request,
 	SigninS3Response,
-	SignupData,
+	SignupRequest,
+	SignupResponse,
 	SignupForm,
 	StructsCommon as _
 };
@@ -48,7 +49,7 @@ pub trait ClientSignup: Sized {
 	///
 	/// Submit all the information here, and the extra data if you need, to the
 	/// server for futher processing
-	fn submit_request(&mut self, signup_data: &SignupData<Self::ExtraData>) -> impl Future<Output = Result<(), Self::Error>>;
+	fn submit_request(&mut self, signup_data: &SignupRequest<Self::ExtraData>) -> impl Future<Output = Result<SignupResponse, Self::Error>>;
 
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
@@ -83,7 +84,7 @@ pub trait ClientSignup: Sized {
 				&password_key
 			)?;
 
-			let signup_data = SignupData {
+			let signup_data = SignupRequest {
 				email,
 				salt,
 				password_verifier,

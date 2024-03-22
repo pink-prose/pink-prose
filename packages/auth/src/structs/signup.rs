@@ -15,7 +15,7 @@ pub struct SignupForm<ExtraData> {
 	pub extra_data: ExtraData
 }
 
-pub struct SignupData<ExtraData> {
+pub struct SignupRequest<ExtraData> {
 	pub email: Email,
 	pub salt: Salt,
 	pub password_verifier: PasswordVerifier,
@@ -23,6 +23,8 @@ pub struct SignupData<ExtraData> {
 	pub encrypted_private_key: EncryptedPrivateKey,
 	pub extra_data: ExtraData
 }
+
+pub struct SignupResponse {}
 
 pub struct StoredSignupData<ExtraData> {
 	pub email: Email,

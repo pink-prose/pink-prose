@@ -24,7 +24,8 @@ use crate::structs::{
 	SigninS3Request,
 	SigninS3Response,
 	SigninS3UserInfo,
-	SignupData,
+	SignupRequest,
+	SignupResponse,
 	StoredSignupData,
 	TextChallenge
 };
@@ -38,7 +39,7 @@ pub trait ServerSignup: Sized {
 	/// Part of step 7.5
 	///
 	/// Receives request information from the client.
-	fn receive_request(&mut self) -> impl Future<Output = Result<SignupData<Self::ExtraData>, Self::Error>>;
+	fn receive_request(&mut self) -> impl Future<Output = Result<SignupRequest<Self::ExtraData>, Self::Error>>;
 
 	/// Part of step 8
 	///
@@ -57,7 +58,9 @@ pub trait ServerSignup: Sized {
 	/// make sure that this is valid to make a new account with the email / extra
 	/// data)
 	// TODO: should the email type in these following two fns be `&Email`?
-	fn ensure_unique_and_reserve(&mut self, email: &str, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>>;
+	fn ensure_unique_and_reserve(&mut self, email: &str, extra_data: &Self::ExtraData) -> impl Future<Output = Result<bool, Self::Error>>;
+
+	fn finalise_email_not_unique(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
 	/// Part of step 12
 	///
@@ -69,7 +72,7 @@ pub trait ServerSignup: Sized {
 	/// Send verification email to the email and provided email verification token
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
 
-	fn send_response(&mut self, response: ()) -> impl Future<Output = Result<(), Self::Error>>;
+	fn send_response(&mut self, response: &SignupResponse) -> impl Future<Output = Result<(), Self::Error>>;
 
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
@@ -87,7 +90,7 @@ pub trait ServerSignup: Sized {
 		) -> Result<S::EndRV, S::Error> {
 			// step 7.5: get the data that the client submitted in step 7,
 			// and the extra data if that needed to be sent.
-			let SignupData {
+			let SignupRequest {
 				email,
 				salt,
 				password_verifier,
@@ -101,7 +104,8 @@ pub trait ServerSignup: Sized {
 
 			// step 9: make sure the email is available. Extra data is
 			// passed here too so you can ex. check a username
-			server.ensure_unique_and_reserve(email.as_str(), &extra_data).await?;
+			let unique = server.ensure_unique_and_reserve(email.as_str(), &extra_data).await?;
+			if !unique { return server.finalise_email_not_unique().await }
 
 			// step 10: generate salt to hash the verifier, then hash it
 			let verifier_salt = Salt::generate();
@@ -130,7 +134,9 @@ pub trait ServerSignup: Sized {
 			// return as soon as its successfully sent)
 			server.send_verification_email(&data.email, &data.email_verification_token).await?;
 
-			server.send_response(()).await?;
+			let response = SignupResponse {
+			};
+			server.send_response(&response).await?;
 
 			server.process_extra_data_post(&data.extra_data).await?;
 			// step 14: finalise anything if necessary
