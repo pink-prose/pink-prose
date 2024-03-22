@@ -58,8 +58,7 @@ pub trait ServerSignup: Sized {
 	/// or unverified users database, or otherwise in any way, in the db) (ie.
 	/// make sure that this is valid to make a new account with the email / extra
 	/// data)
-	// TODO: should the email type in these following two fns be `&Email`?
-	fn ensure_unique_and_reserve(&mut self, email: &str, extra_data: &Self::ExtraData) -> impl Future<Output = Result<bool, Self::Error>>;
+	fn ensure_unique_and_reserve(&mut self, email: &Email, extra_data: &Self::ExtraData) -> impl Future<Output = Result<bool, Self::Error>>;
 
 	fn finalise_email_not_unique(self) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 
@@ -105,7 +104,7 @@ pub trait ServerSignup: Sized {
 
 			// step 9: make sure the email is available. Extra data is
 			// passed here too so you can ex. check a username
-			let unique = server.ensure_unique_and_reserve(email.as_str(), &extra_data).await?;
+			let unique = server.ensure_unique_and_reserve(&email, &extra_data).await?;
 			if !unique { return server.finalise_email_not_unique().await }
 
 			// step 10: generate salt to hash the verifier, then hash it
@@ -157,7 +156,7 @@ pub trait ServerRequestVerificationEmail: Sized {
 	fn process_extra_data_pre(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
 	}
-	fn check_email_in_unverified(&mut self, email: &str) -> impl Future<Output = Result<bool, Self::Error>>;
+	fn check_email_in_unverified(&mut self, email: &Email) -> impl Future<Output = Result<bool, Self::Error>>;
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> impl Future<Output = Result<(), Self::Error>>;
 	fn process_extra_data_post(&mut self, data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
 		async { Ok(()) }
@@ -175,7 +174,7 @@ pub trait ServerRequestVerificationEmail: Sized {
 
 			server.process_extra_data_pre(&extra_data).await?;
 
-			if !server.check_email_in_unverified(email.as_str()).await? {
+			if !server.check_email_in_unverified(&email).await? {
 				// silent early bail
 				return server.finalise(false).await
 			}
@@ -265,8 +264,8 @@ pub trait ServerSigninS1: Sized {
 		async { Ok(()) }
 	}
 	fn get_salt_and_is_verified(&mut self) -> impl Future<Output = Result<SigninS1GetSalt, Self::Error>>;
-	fn finalise_not_email_verified(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
-	fn finalise_invalid_email(self, email: Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn finalise_not_email_verified(self, email: &Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
+	fn finalise_invalid_email(self, email: &Email) -> impl Future<Output = Result<Self::EndRV, Self::Error>>;
 	fn store_inprogress_signin(&mut self, in_progress_data: &SigninS1InProgress) -> impl Future<Output = Result<(), Self::Error>>;
 	fn send_response(&mut self, response: &SigninS1Response) -> impl Future<Output = Result<(), Self::Error>>;
 	fn process_extra_data_post(&mut self, extra_data: &Self::ExtraData) -> impl Future<Output = Result<(), Self::Error>> {
@@ -287,8 +286,8 @@ pub trait ServerSigninS1: Sized {
 
 			let salt = match server.get_salt_and_is_verified().await? {
 				SigninS1GetSalt::Verified(salt) => { salt }
-				SigninS1GetSalt::NotVerified => { return server.finalise_not_email_verified(email).await }
-				SigninS1GetSalt::InvalidEmail => { return server.finalise_invalid_email(email).await }
+				SigninS1GetSalt::NotVerified => { return server.finalise_not_email_verified(&email).await }
+				SigninS1GetSalt::InvalidEmail => { return server.finalise_invalid_email(&email).await }
 			};
 
 			let signin_attempt_id = SigninAttemptID::generate();
