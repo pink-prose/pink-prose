@@ -27,8 +27,8 @@ impl Generatable for TextChallenge {
 }
 
 impl TextChallenge {
-	pub(crate) fn sign(&self, private_key: &PrivateKey) -> TextChallengeSignature {
-		TextChallengeSignature(private_key.sign_bytes(&self.0))
+	pub(crate) fn sign(&self, private_key: &PrivateKey) -> Result<TextChallengeSignature> {
+		Ok(TextChallengeSignature(private_key.sign_bytes(&self.0)?))
 	}
 
 	pub(crate) fn verify(&self, public_key: &PublicKey, signature: &TextChallengeSignature) -> bool {

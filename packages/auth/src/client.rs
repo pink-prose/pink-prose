@@ -199,7 +199,7 @@ pub trait ClientSignin: Sized {
 			} = client.submit_s2_request(&request).await?;
 
 			let private_key = encrypted_private_key.into_private_key_with_password_key(&password_key)?;
-			let text_challenge_signature = text_challenge.sign(&private_key);
+			let text_challenge_signature = text_challenge.sign(&private_key)?;
 
 			let Keypair {
 				public_key: session_public_key,

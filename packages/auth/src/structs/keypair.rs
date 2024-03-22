@@ -1,7 +1,7 @@
 use crate::error::*;
 use super::{ ChaCha20Poly1305, PasswordKey, StructsCommon, Generatable };
 use ::p384::pkcs8::{ EncodePublicKey as _, EncodePrivateKey as _, DecodePublicKey as _, DecodePrivateKey as _, LineEnding::LF };
-use ::p384::ecdsa::{ Signature, signature::{ Signer, Verifier } };
+use ::p384::ecdsa::{ Signature, signature::{ RandomizedSigner, Verifier } };
 use ::rand::rngs::OsRng;
 
 pub struct Keypair {
@@ -53,9 +53,9 @@ impl StructsCommon for PrivateKey {
 }
 
 impl PrivateKey {
-	pub(crate) fn sign_bytes(&self, bytes: &[u8]) -> Signature {
+	pub(crate) fn sign_bytes(&self, bytes: &[u8]) -> Result<Signature> {
 		let key = ::p384::ecdsa::SigningKey::from(&self.0);
-		key.sign(bytes)
+		Ok(key.try_sign_with_rng(&mut OsRng, bytes)?)
 	}
 }
 
