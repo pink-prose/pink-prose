@@ -3167,6 +3167,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pinkprose-auth-2"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "blake3",
+ "chacha20poly1305",
+ "constant_time_eq",
+ "getrandom 0.2.12",
+ "p384",
+ "rand 0.8.5",
+ "thiserror",
+ "validator",
+ "wiwi",
+ "zeroize",
+]
+
+[[package]]
 name = "pinkprose-db"
 version = "0.1.0"
 dependencies = [
@@ -5437,6 +5454,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dffa400e67ed5a4dd237983829e66475f0a4a26938c4b04c21baede6262215b8"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "wiwi"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25c2e34907b84c8b79769e8fbe8882842fee067673f2bd9fa057f19e3371a597"
+dependencies = [
+ "cfg-if",
+ "thiserror",
 ]
 
 [[package]]
