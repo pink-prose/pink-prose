@@ -1,5 +1,5 @@
 use crate::error::*;
-use super::{ StructsCommon, bytes_to_z85, z85_to_array };
+use super::{ StructsCommon, z85_to_array };
 use ::blake3::Hasher as Blake3Hasher;
 use ::wiwi::z85::{ encode_z85, decode_z85 };
 
@@ -7,7 +7,7 @@ pub struct Blake3([u8; 32]);
 
 impl StructsCommon for Blake3 {
 	fn to_string(&self) -> Result<String> {
-		bytes_to_z85(&self.0)
+		Ok(encode_z85(&self.0))
 	}
 
 	fn from_str(s: &str) -> Result<Self> {

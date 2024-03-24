@@ -10,11 +10,7 @@ pub trait Generatable: Sized {
 	fn generate() -> Self;
 }
 
-#[inline]
-pub fn bytes_to_z85(bytes: &[u8]) -> Result<String> {
-	Ok(encode_z85(bytes))
-}
-
+/// saves some boilerplate typing, nothing else
 #[inline]
 pub fn z85_to_array<T, F, const N: usize>(s: &str, f: F) -> Result<T>
 where

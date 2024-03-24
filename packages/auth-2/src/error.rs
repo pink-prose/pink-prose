@@ -4,14 +4,14 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum Error {
-	// #[error("{0}")]
-	// Aead(::chacha20poly1305::aead::Error),
+	#[error("{0}")]
+	Aead(::chacha20poly1305::aead::Error),
 	#[error("{0}")]
 	Argon2(::argon2::Error),
 	#[error(transparent)]
 	EllipticCurve(#[from] ::p384::elliptic_curve::Error),
-	// #[error(transparent)]
-	// FromUTF8(#[from] ::std::string::FromUtf8Error),
+	#[error(transparent)]
+	FromUTF8(#[from] ::std::string::FromUtf8Error),
 	#[error("email {0} is invalid")]
 	InvalidEmail(String),
 	// #[error(transparent)]
@@ -32,11 +32,11 @@ pub enum Error {
 	Z85Decode(#[from] ::wiwi::z85::DecodeError)
 }
 
-// impl From<::chacha20poly1305::aead::Error> for Error {
-// 	fn from(error: ::chacha20poly1305::aead::Error) -> Self {
-// 		Self::Aead(error)
-// 	}
-// }
+impl From<::chacha20poly1305::aead::Error> for Error {
+	fn from(error: ::chacha20poly1305::aead::Error) -> Self {
+		Self::Aead(error)
+	}
+}
 
 impl From<::argon2::Error> for Error {
 	fn from(error: ::argon2::Error) -> Self {

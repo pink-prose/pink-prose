@@ -1,5 +1,5 @@
 use crate::error::*;
-use super::{ Generatable, StructsCommon };
+use super::{ Generatable, StructsCommon, ChaCha20Poly1305, ChaChaKey, ChaChaNonce };
 use ::p384::{
 	PublicKey as P384PublicKey,
 	SecretKey as P384SecretKey
@@ -56,6 +56,45 @@ impl SecretKey {
 		let signing_key = P384SigningKey::from(&self.0);
 		let signature = signing_key.sign_with_rng(&mut OsRng, msg);
 		Signature(signature)
+	}
+}
+
+pub struct EncryptedSecretKey(ChaCha20Poly1305);
+
+impl StructsCommon for EncryptedSecretKey {
+	fn to_string(&self) -> Result<String> {
+		self.0.to_string()
+	}
+
+	fn from_str(s: &str) -> Result<Self> {
+		Ok(Self(ChaCha20Poly1305::from_str(s)?))
+	}
+}
+
+impl EncryptedSecretKey {
+	pub(super) fn encrypt_self(
+		secret_key: &SecretKey,
+		key: &ChaChaKey,
+		nonce: &ChaChaNonce
+	) -> Result<Self> {
+		let encrypted = ChaCha20Poly1305::encrypt(
+			secret_key.to_string()?.as_bytes(),
+			key,
+			nonce
+		)?;
+		Ok(Self(encrypted))
+	}
+
+	pub(super) fn decrypt_self(
+		&self,
+		key: &ChaChaKey,
+		nonce: &ChaChaNonce
+	) -> Result<SecretKey> {
+		let decrypted = self.0.decrypt(key, nonce)?;
+		let decrypted_string = String::from_utf8(decrypted)?;
+
+		let secret_key = SecretKey::from_str(&decrypted_string)?;
+		Ok(secret_key)
 	}
 }
 

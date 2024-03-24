@@ -1,5 +1,5 @@
 use crate::error::*;
-use super::{ Generatable, StructsCommon, bytes_to_z85, z85_to_array };
+use super::{ Generatable, StructsCommon, z85_to_array };
 use ::argon2::{ Algorithm, Version, ParamsBuilder };
 use ::rand::{ Rng, rngs::OsRng };
 use ::wiwi::z85::{ encode_z85, decode_z85 };
@@ -105,6 +105,10 @@ impl Argon2 {
 
 		Ok(argon2)
 	}
+
+	pub(super) fn to_hash_bytes(&self) -> &[u8; Self::OUTPUT_LEN] {
+		&self.bytes
+	}
 }
 
 impl Argon2 {
@@ -120,7 +124,7 @@ pub struct Salt([u8; 32]);
 
 impl StructsCommon for Salt {
 	fn to_string(&self) -> Result<String> {
-		bytes_to_z85(&self.0)
+		Ok(encode_z85(&self.0))
 	}
 
 	fn from_str(s: &str) -> Result<Self> {

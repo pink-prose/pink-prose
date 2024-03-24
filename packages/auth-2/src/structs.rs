@@ -45,20 +45,8 @@ pub use session::*;
 pub mod signin_attempt_id;
 pub use signin_attempt_id::*;
 
-pub mod signin_s1;
-pub use signin_s1::*;
-
-pub mod signin_s2;
-pub use signin_s2::*;
-
-pub mod signin_s3;
-pub use signin_s3::*;
-
 pub mod signing_challenge;
 pub use signing_challenge::*;
-
-pub mod signup;
-pub use signup::*;
 
 mod util;
 pub use self::util::{ Generatable, StructsCommon };
