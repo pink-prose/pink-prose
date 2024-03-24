@@ -13,56 +13,56 @@ pub struct Argon2 {
 	bytes: [u8; Self::OUTPUT_LEN]
 }
 
-impl StructsCommon for Argon2 {
-	fn to_string(&self) -> Result<String> {
-		let Self {
-			alg,
-			version,
-			m_cost,
-			t_cost,
-			p_cost,
-			output_len,
-			bytes
-		} = self;
+// impl VecSerialisation for Argon2 {
+// 	fn to_vec(&self) -> Result<String> {
+// 		let Self {
+// 			alg,
+// 			version,
+// 			m_cost,
+// 			t_cost,
+// 			p_cost,
+// 			output_len,
+// 			bytes
+// 		} = self;
 
-		let version = *version as u32;
-		let bytes = encode_z85(bytes);
+// 		let version = *version as u32;
+// 		let bytes = encode_z85(bytes);
 
-		// comma is not used in z85
-		Ok(format!("{alg},{version},{m_cost},{t_cost},{p_cost},{output_len},{bytes}"))
-	}
+// 		// comma is not used in z85
+// 		Ok(format!("{alg},{version},{m_cost},{t_cost},{p_cost},{output_len},{bytes}").into_bytes())
+// 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		let mut iter = s.split(',');
+// 	fn from_bytes(s: &[u8]) -> Result<Self> {
+// 		let mut iter = s.split(|b| *b == b',');
 
-		/// am lazy, don't mind me
-		macro_rules! try_next {
-			() => { iter.next().ok_or_else(|| Error::ParseArgon2)? }
-		}
+// 		/// am lazy, don't mind me
+// 		macro_rules! try_next {
+// 			() => { iter.next().ok_or_else(|| Error::ParseArgon2)? }
+// 		}
 
-		let alg = try_next!().parse()?;
-		let version: u32 = try_next!().parse()?;
-		let version = version.try_into()?;
-		let m_cost = try_next!().parse()?;
-		let t_cost = try_next!().parse()?;
-		let p_cost = try_next!().parse()?;
-		let output_len = try_next!().parse()?;
-		let bytes = decode_z85(try_next!().as_bytes())?
-			.try_into()
-			.map_err(|_| Error::TryIntoArray)?;
-		if iter.next().is_some() { return Err(Error::ParseArgon2) }
+// 		let alg = try_next!().parse()?;
+// 		let version: u32 = try_next!().parse()?;
+// 		let version = version.try_into()?;
+// 		let m_cost = try_next!().parse()?;
+// 		let t_cost = try_next!().parse()?;
+// 		let p_cost = try_next!().parse()?;
+// 		let output_len = try_next!().parse()?;
+// 		let bytes = decode_z85(try_next!().as_bytes())?
+// 			.try_into()
+// 			.map_err(|_| Error::TryIntoArray)?;
+// 		if iter.next().is_some() { return Err(Error::ParseArgon2) }
 
-		Ok(Self {
-			alg,
-			version,
-			m_cost,
-			t_cost,
-			p_cost,
-			output_len,
-			bytes
-		})
-	}
-}
+// 		Ok(Self {
+// 			alg,
+// 			version,
+// 			m_cost,
+// 			t_cost,
+// 			p_cost,
+// 			output_len,
+// 			bytes
+// 		})
+// 	}
+// }
 
 impl Argon2 {
 	fn default_with_zeroed_bytes() -> Self {
@@ -131,15 +131,17 @@ impl Argon2 {
 
 pub struct Salt([u8; 32]);
 
-impl StructsCommon for Salt {
-	fn to_string(&self) -> Result<String> {
-		Ok(encode_z85(&self.0))
-	}
+// impl ArraySerialisation for Salt {
+// 	const N: usize = 32;
 
-	fn from_str(s: &str) -> Result<Self> {
-		z85_to_array(s, Self)
-	}
-}
+// 	fn to_array(&self) -> Result<[u8; 32]> {
+// 		Ok(self.0)
+// 	}
+
+// 	fn from_array(a: &[u8; 32]) -> Result<Self> {
+// 		Ok(Self(*a))
+// 	}
+// }
 
 impl Generatable for Salt {
 	fn generate() -> Self {

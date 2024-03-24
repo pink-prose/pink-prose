@@ -3173,6 +3173,7 @@ dependencies = [
  "argon2",
  "blake3",
  "chacha20poly1305",
+ "chrono",
  "constant_time_eq",
  "getrandom 0.2.12",
  "p384",
@@ -5458,9 +5459,9 @@ dependencies = [
 
 [[package]]
 name = "wiwi"
-version = "0.5.0"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "205fa2c0c4080df71ef0a0c3d274d86c653ff90774d574673959d278a4696269"
+checksum = "aead1ee644dee2bd3b8e00178fe60bd5cbb947647b58a8efae4873c612f56b0e"
 dependencies = [
  "cfg-if",
  "thiserror",

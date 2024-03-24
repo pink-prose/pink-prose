@@ -15,18 +15,18 @@ use ::zeroize::{ Zeroize, Zeroizing };
 
 pub struct PublicKey(P384PublicKey);
 
-impl StructsCommon for PublicKey {
-	fn to_string(&self) -> Result<String> {
-		let bytes = self.0.to_sec1_bytes();
-		Ok(encode_z85(&bytes))
-	}
+// impl StringSerialisable for PublicKey {
+// 	fn to_string(&self) -> Result<String> {
+// 		let bytes = self.0.to_sec1_bytes();
+// 		Ok(encode_z85(&bytes))
+// 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		let decoded = decode_z85(s.as_bytes())?;
-		let key = P384PublicKey::from_sec1_bytes(&decoded)?;
-		Ok(Self(key))
-	}
-}
+// 	fn from_str(s: &str) -> Result<Self> {
+// 		let decoded = decode_z85(s.as_bytes())?;
+// 		let key = P384PublicKey::from_sec1_bytes(&decoded)?;
+// 		Ok(Self(key))
+// 	}
+// }
 
 impl PublicKey {
 	pub(crate) fn verify(&self, msg: &[u8], signature: &Signature) -> bool {
@@ -37,18 +37,29 @@ impl PublicKey {
 
 pub struct SecretKey(P384SecretKey);
 
-impl StructsCommon for SecretKey {
-	fn to_string(&self) -> Result<String> {
+impl VecSerialisable for SecretKey {
+	fn to_vec(&self) -> Result<Vec<u8>> {
 		let bytes = self.0.to_sec1_der()?;
-		Ok(encode_z85(&bytes))
+		Ok((**bytes).into())
 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		let decoded = decode_z85(s.as_bytes())?;
-		let key = P384SecretKey::from_sec1_der(&decoded)?;
-		Ok(Self(key))
+	fn from_bytes(b: &[u8]) -> Result<Self> {
+		Ok(Self(P384SecretKey::from_sec1_der(b)?))
 	}
 }
+
+// impl StringSerialisable for SecretKey {
+// 	fn to_string(&self) -> Result<String> {
+// 		let bytes = self.0.to_sec1_der()?;
+// 		Ok(encode_z85(&bytes))
+// 	}
+
+// 	fn from_str(s: &str) -> Result<Self> {
+// 		let decoded = decode_z85(s.as_bytes())?;
+// 		let key = P384SecretKey::from_sec1_der(&decoded)?;
+// 		Ok(Self(key))
+// 	}
+// }
 
 impl SecretKey {
 	pub(crate) fn sign(&self, msg: &[u8]) -> Signature {
@@ -60,15 +71,15 @@ impl SecretKey {
 
 pub struct EncryptedSecretKey(ChaCha20Poly1305);
 
-impl StructsCommon for EncryptedSecretKey {
-	fn to_string(&self) -> Result<String> {
-		self.0.to_string()
-	}
+// impl StringSerialisable for EncryptedSecretKey {
+// 	fn to_string(&self) -> Result<String> {
+// 		self.0.to_string()
+// 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		Ok(Self(ChaCha20Poly1305::from_str(s)?))
-	}
-}
+// 	fn from_str(s: &str) -> Result<Self> {
+// 		Ok(Self(ChaCha20Poly1305::from_str(s)?))
+// 	}
+// }
 
 impl EncryptedSecretKey {
 	pub(crate) fn encrypt(
@@ -77,7 +88,7 @@ impl EncryptedSecretKey {
 		nonce: &ChaChaNonce
 	) -> Result<Self> {
 		let encrypted = ChaCha20Poly1305::encrypt(
-			secret_key.to_string()?.as_bytes(),
+			&secret_key.to_vec()?,
 			key,
 			nonce
 		)?;
@@ -90,9 +101,7 @@ impl EncryptedSecretKey {
 		nonce: &ChaChaNonce
 	) -> Result<SecretKey> {
 		let decrypted = self.0.decrypt(key, nonce)?;
-		let decrypted_string = String::from_utf8(decrypted)?;
-
-		let secret_key = SecretKey::from_str(&decrypted_string)?;
+		let secret_key = SecretKey::from_bytes(&decrypted)?;
 		Ok(secret_key)
 	}
 }
@@ -116,12 +125,12 @@ impl Generatable for Keypair {
 
 pub struct Signature(P384Signature);
 
-impl StructsCommon for Signature {
-	fn to_string(&self) -> Result<String> {
-		Ok(self.0.to_string())
-	}
+// impl StringSerialisable for Signature {
+// 	fn to_string(&self) -> Result<String> {
+// 		Ok(self.0.to_string())
+// 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		Ok(Self(s.parse()?))
-	}
-}
+// 	fn from_str(s: &str) -> Result<Self> {
+// 		Ok(Self(s.parse()?))
+// 	}
+// }

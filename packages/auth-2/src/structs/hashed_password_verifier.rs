@@ -2,15 +2,15 @@ use crate::internal_prelude::*;
 
 pub struct HashedPasswordVerifier(Argon2);
 
-impl StructsCommon for HashedPasswordVerifier {
-	fn to_string(&self) -> Result<String> {
-		self.0.to_string()
-	}
+// impl StructsCommon for HashedPasswordVerifier {
+// 	fn to_string(&self) -> Result<String> {
+// 		self.0.to_string()
+// 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		Ok(Self(Argon2::from_str(s)?))
-	}
-}
+// 	fn from_str(s: &str) -> Result<Self> {
+// 		Ok(Self(Argon2::from_str(s)?))
+// 	}
+// }
 
 impl HashedPasswordVerifier {
 	pub(crate) fn from_password_verifier_and_salt(

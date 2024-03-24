@@ -4,15 +4,17 @@ use ::wiwi::z85::{ encode_z85, decode_z85 };
 
 pub struct Blake3([u8; 32]);
 
-impl StructsCommon for Blake3 {
-	fn to_string(&self) -> Result<String> {
-		Ok(encode_z85(&self.0))
-	}
+// impl ArraySerialisation for Blake3 {
+// 	const N: usize = 32;
 
-	fn from_str(s: &str) -> Result<Self> {
-		z85_to_array(s, Self)
-	}
-}
+// 	fn to_array(&self) -> Result<[u8; 32]> {
+// 		Ok(encode_z85(&self.0))
+// 	}
+
+// 	fn from_array(a: &[u8; 32]) -> Result<Self> {
+// 		Ok(a)
+// 	}
+// }
 
 impl Blake3 {
 	pub(crate) fn hash(bytes: &[u8]) -> Self {

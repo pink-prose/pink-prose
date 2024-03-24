@@ -5,15 +5,15 @@ use ::rand::{ Rng, rngs::OsRng };
 
 pub struct ChaCha20Poly1305(Vec<u8>);
 
-impl StructsCommon for ChaCha20Poly1305 {
-	fn to_string(&self) -> Result<String> {
-		Ok(encode_z85(&self.0))
-	}
+// impl VecSerialisation for ChaCha20Poly1305 {
+// 	fn to_vec(&self) -> Result<String> {
+// 		Ok(encode_z85(&self.0))
+// 	}
 
-	fn from_str(s: &str) -> Result<Self> {
-		Ok(Self(decode_z85(s.as_bytes())?))
-	}
-}
+// 	fn from_bytes(s: &str) -> Result<Self> {
+// 		Ok(Self(decode_z85(s.as_bytes())?))
+// 	}
+// }
 
 impl ChaCha20Poly1305 {
 	pub(crate) fn encrypt(
@@ -49,15 +49,17 @@ impl ChaCha20Poly1305 {
 
 pub struct ChaChaKey([u8; 32]);
 
-impl StructsCommon for ChaChaKey {
-	fn to_string(&self) -> Result<String> {
-		Ok(encode_z85(&self.0))
-	}
+// impl ArraySerialisation for ChaChaKey {
+// 	const N: usize = 32;
 
-	fn from_str(s: &str) -> Result<Self> {
-		z85_to_array(s, Self)
-	}
-}
+// 	fn to_array(&self) -> Result<String> {
+// 		Ok(encode_z85(&self.0))
+// 	}
+
+// 	fn from_array(a: &[u8; 12]) -> Result<Self> {
+// 		Ok(Self(*a))
+// 	}
+// }
 
 impl ChaChaKey {
 	pub(crate) fn from_password_key(password_key: &PasswordKey) -> Self {
@@ -67,15 +69,17 @@ impl ChaChaKey {
 
 pub struct ChaChaNonce([u8; 12]);
 
-impl StructsCommon for ChaChaNonce {
-	fn to_string(&self) -> Result<String> {
-		Ok(encode_z85(&self.0))
-	}
+// impl ArraySerialisation for ChaChaNonce {
+// 	const N: usize = 12;
 
-	fn from_str(s: &str) -> Result<Self> {
-		z85_to_array(s, Self)
-	}
-}
+// 	fn to_array(&self) -> Result<String> {
+// 		Ok(encode_z85(&self.0))
+// 	}
+
+// 	fn from_array(a: &[u8; 12]) -> Result<Self> {
+// 		Ok(Self(*a))
+// 	}
+// }
 
 impl Generatable for ChaChaNonce {
 	fn generate() -> Self {

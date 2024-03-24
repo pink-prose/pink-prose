@@ -7,6 +7,9 @@ pub use blake3::*;
 pub mod chacha20poly1305;
 pub use chacha20poly1305::*;
 
+pub mod datetime;
+pub use datetime::*;
+
 pub mod email;
 pub use email::*;
 
@@ -44,5 +47,10 @@ pub mod signing_challenge;
 pub use signing_challenge::*;
 
 mod util;
-pub use self::util::{ Generatable, StructsCommon };
+pub use self::util::{
+	Generatable,
+	ArraySerialisable,
+	VecSerialisable,
+	StringSerialisable
+};
 pub(crate) use util::*;
