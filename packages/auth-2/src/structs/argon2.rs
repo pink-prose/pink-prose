@@ -26,8 +26,8 @@ impl StructsCommon for Argon2 {
 			bytes
 		} = self;
 
-		let version: u32 = (*version).into();
-		let bytes = encode_z85(bytes as &[u8]);
+		let version = *version as u32;
+		let bytes = encode_z85(bytes);
 
 		// comma is not used in z85
 		Ok(format!("{alg},{version},{m_cost},{t_cost},{p_cost},{output_len},{bytes}"))
@@ -51,7 +51,7 @@ impl StructsCommon for Argon2 {
 		let bytes = decode_z85(try_next!().as_bytes())?
 			.try_into()
 			.map_err(|_| Error::TryIntoArray)?;
-		assert!(iter.next().is_none());
+		if iter.next().is_some() { return Err(Error::ParseArgon2) }
 
 		Ok(Self {
 			alg,
