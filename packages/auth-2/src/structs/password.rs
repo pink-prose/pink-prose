@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::StructsCommon;
+use crate::internal_prelude::*;
 
 pub struct Password(String);
 
@@ -14,7 +13,7 @@ impl StructsCommon for Password {
 }
 
 impl Password {
-	pub(super) fn as_bytes(&self) -> &[u8] {
+	pub(crate) fn as_bytes(&self) -> &[u8] {
 		self.0.as_bytes()
 	}
 }

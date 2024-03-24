@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::{ Generatable, StructsCommon, z85_to_array };
+use crate::internal_prelude::*;
 use ::argon2::{ Algorithm, Version, ParamsBuilder };
 use ::rand::{ Rng, rngs::OsRng };
 use ::wiwi::z85::{ encode_z85, decode_z85 };
@@ -91,7 +90,7 @@ impl Argon2 {
 		))
 	}
 
-	pub(super) fn hash_and_salt(
+	pub(crate) fn hash_and_salt(
 		to_hash: &[u8],
 		salt: &Salt
 	) -> Result<Self> {
@@ -106,7 +105,17 @@ impl Argon2 {
 		Ok(argon2)
 	}
 
-	pub(super) fn to_hash_bytes(&self) -> &[u8; Self::OUTPUT_LEN] {
+	pub(crate) fn verify(
+		&self,
+		to_hash: &[u8],
+		salt: &Salt
+	) -> Result<bool> {
+		let mut buf = [0u8; Self::OUTPUT_LEN];
+		self.get_hasher()?.hash_password_into(to_hash, &salt.0, &mut buf)?;
+		Ok(::constant_time_eq::constant_time_eq_32(&self.bytes, &buf))
+	}
+
+	pub(crate) fn to_hash_bytes(&self) -> &[u8; Self::OUTPUT_LEN] {
 		&self.bytes
 	}
 }
@@ -134,9 +143,7 @@ impl StructsCommon for Salt {
 
 impl Generatable for Salt {
 	fn generate() -> Self {
-		let mut buf = [0u8; 32];
-		OsRng.fill(&mut buf as &mut [u8]);
-		Self(buf)
+		Self(rand_array())
 	}
 }
 

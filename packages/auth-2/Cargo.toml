@@ -15,7 +15,7 @@ p384 = "0.13.0"
 rand = "0.8.5"
 thiserror.workspace = true
 validator = "0.17.0"
-wiwi = { version = "0.5.0", features = ["z85"] }
+wiwi = { version = "0.5.0", features = ["hex", "z85"] }
 zeroize = "1.7.0"
 
 [features]

@@ -1,6 +1,6 @@
 use ::thiserror::Error;
 
-pub type Result<T> = ::std::result::Result<T, Error>;
+pub type Result<T, E = Error> = ::std::result::Result<T, E>;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -12,6 +12,8 @@ pub enum Error {
 	EllipticCurve(#[from] ::p384::elliptic_curve::Error),
 	#[error(transparent)]
 	FromUTF8(#[from] ::std::string::FromUtf8Error),
+	#[error(transparent)]
+	Hex(#[from] ::wiwi::hex::DecodeError),
 	#[error("email {0} is invalid")]
 	InvalidEmail(String),
 	// #[error(transparent)]

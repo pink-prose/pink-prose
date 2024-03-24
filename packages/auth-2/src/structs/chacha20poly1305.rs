@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::{ Generatable, StructsCommon, z85_to_array };
+use crate::internal_prelude::*;
 use ::chacha20poly1305::{ aead::Aead as _, KeyInit as _ };
 use ::wiwi::z85::{ encode_z85, decode_z85 };
 use ::rand::{ Rng, rngs::OsRng };
@@ -17,7 +16,7 @@ impl StructsCommon for ChaCha20Poly1305 {
 }
 
 impl ChaCha20Poly1305 {
-	pub(super) fn encrypt(
+	pub(crate) fn encrypt(
 		to_encrypt: &[u8],
 		key: &ChaChaKey,
 		nonce: &ChaChaNonce
@@ -32,7 +31,7 @@ impl ChaCha20Poly1305 {
 		Ok(Self(encrypted))
 	}
 
-	pub(super) fn decrypt(
+	pub(crate) fn decrypt(
 		&self,
 		key: &ChaChaKey,
 		nonce: &ChaChaNonce
@@ -60,6 +59,12 @@ impl StructsCommon for ChaChaKey {
 	}
 }
 
+impl ChaChaKey {
+	pub(crate) fn from_password_key(password_key: &PasswordKey) -> Self {
+		Self(*password_key.to_key_bytes())
+	}
+}
+
 pub struct ChaChaNonce([u8; 12]);
 
 impl StructsCommon for ChaChaNonce {
@@ -74,8 +79,6 @@ impl StructsCommon for ChaChaNonce {
 
 impl Generatable for ChaChaNonce {
 	fn generate() -> Self {
-		let mut buf = [0u8; 12];
-		OsRng.fill(&mut buf as &mut [u8]);
-		Self(buf)
+		Self(rand_array())
 	}
 }

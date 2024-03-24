@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::{ Generatable, StructsCommon, ChaCha20Poly1305, ChaChaKey, ChaChaNonce };
+use crate::internal_prelude::*;
 use ::p384::{
 	PublicKey as P384PublicKey,
 	SecretKey as P384SecretKey
@@ -30,7 +29,7 @@ impl StructsCommon for PublicKey {
 }
 
 impl PublicKey {
-	pub(super) fn verify(&self, msg: &[u8], signature: &Signature) -> bool {
+	pub(crate) fn verify(&self, msg: &[u8], signature: &Signature) -> bool {
 		let verifying_key = P384VerifyingKey::from(&self.0);
 		verifying_key.verify(msg, &signature.0).is_ok()
 	}
@@ -52,7 +51,7 @@ impl StructsCommon for SecretKey {
 }
 
 impl SecretKey {
-	pub(super) fn sign(&self, msg: &[u8]) -> Signature {
+	pub(crate) fn sign(&self, msg: &[u8]) -> Signature {
 		let signing_key = P384SigningKey::from(&self.0);
 		let signature = signing_key.sign_with_rng(&mut OsRng, msg);
 		Signature(signature)
@@ -72,7 +71,7 @@ impl StructsCommon for EncryptedSecretKey {
 }
 
 impl EncryptedSecretKey {
-	pub(super) fn encrypt_self(
+	pub(crate) fn encrypt(
 		secret_key: &SecretKey,
 		key: &ChaChaKey,
 		nonce: &ChaChaNonce
@@ -85,7 +84,7 @@ impl EncryptedSecretKey {
 		Ok(Self(encrypted))
 	}
 
-	pub(super) fn decrypt_self(
+	pub(crate) fn decrypt(
 		&self,
 		key: &ChaChaKey,
 		nonce: &ChaChaNonce

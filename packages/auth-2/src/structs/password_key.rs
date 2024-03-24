@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::{ Argon2, Salt, Password, StructsCommon };
+use crate::internal_prelude::*;
 
 pub struct PasswordKey(Argon2);
 
@@ -14,7 +13,7 @@ impl StructsCommon for PasswordKey {
 }
 
 impl PasswordKey {
-	pub(super) fn from_pw_and_salt(
+	pub(crate) fn from_pw_and_salt(
 		password: &Password,
 		salt: &Salt
 	) -> Result<Self> {
@@ -22,7 +21,7 @@ impl PasswordKey {
 		Ok(Self(hash))
 	}
 
-	pub(super) fn to_key_bytes(&self) -> &[u8] {
+	pub(crate) fn to_key_bytes(&self) -> &[u8; 32] {
 		self.0.to_hash_bytes()
 	}
 }

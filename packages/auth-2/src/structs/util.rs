@@ -1,4 +1,4 @@
-use crate::error::*;
+use crate::internal_prelude::*;
 use ::wiwi::z85::{ encode_z85, decode_z85 };
 
 pub trait StructsCommon: Sized {
@@ -21,4 +21,12 @@ where
 		.try_into()
 		.map_err(|_| Error::TryIntoArray)?;
 	Ok(f(decoded))
+}
+
+#[inline]
+pub fn rand_array<const N: usize>() -> [u8; N] {
+	use ::rand::{ Rng, rngs::OsRng };
+	let mut buf = [0u8; N];
+	OsRng.fill(&mut buf as &mut [u8]);
+	buf
 }

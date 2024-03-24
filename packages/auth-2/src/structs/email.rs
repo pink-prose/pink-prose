@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::StructsCommon;
+use crate::internal_prelude::*;
 use ::validator::ValidateEmail as _;
 
 pub struct Email(String);

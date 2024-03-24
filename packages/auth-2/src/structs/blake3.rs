@@ -1,5 +1,4 @@
-use crate::error::*;
-use super::{ StructsCommon, z85_to_array };
+use crate::internal_prelude::*;
 use ::blake3::Hasher as Blake3Hasher;
 use ::wiwi::z85::{ encode_z85, decode_z85 };
 
@@ -16,14 +15,14 @@ impl StructsCommon for Blake3 {
 }
 
 impl Blake3 {
-	pub(super) fn hash(bytes: &[u8]) -> Self {
+	pub(crate) fn hash(bytes: &[u8]) -> Self {
 		let mut hasher = Blake3Hasher::new();
 		hasher.update(bytes);
 		let bytes = *hasher.finalize().as_bytes();
 		Self(bytes)
 	}
 
-	pub(super) fn hash_key_derivation(
+	pub(crate) fn hash_key_derivation(
 		// should be hardcoded
 		context: &'static str,
 		bytes: &[u8]
@@ -32,5 +31,9 @@ impl Blake3 {
 		hasher.update(bytes);
 		let bytes = *hasher.finalize().as_bytes();
 		Self(bytes)
+	}
+
+	pub(crate) fn to_hash_bytes(&self) -> &[u8; 32] {
+		&self.0
 	}
 }

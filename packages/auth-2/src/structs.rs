@@ -1,8 +1,3 @@
-// Types have methods to serialise/deserialise themselves to/from string, and
-// have methods to make _themself_ from others. Ex. `from*` methods, but not `to*`
-// methods. Don't expose more than needed outside this module (pub(super)) or
-// this crate (pub(crate)).
-
 pub mod argon2;
 pub use argon2::*;
 
@@ -36,8 +31,8 @@ pub use password_reset_token::*;
 pub mod password_verifier;
 pub use password_verifier::*;
 
-pub mod request_verification_email;
-pub use request_verification_email::*;
+pub mod sealed_future;
+pub use sealed_future::*;
 
 pub mod session;
 pub use session::*;
@@ -50,4 +45,4 @@ pub use signing_challenge::*;
 
 mod util;
 pub use self::util::{ Generatable, StructsCommon };
-use util::*;
+pub(crate) use util::*;
