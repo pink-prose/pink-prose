@@ -15,12 +15,10 @@ pub fn App() -> impl IntoView {
 
 	view! {
 		<Router>
-			<main>
-				<Routes>
-					<Route path="" view=Home />
-					<Route path="/*any" view=NotFound />
-				</Routes>
-			</main>
+			<Routes>
+				<Route path="" view=Home />
+				<Route path="/*any" view=NotFound />
+			</Routes>
 		</Router>
 	}
 }
