@@ -26,7 +26,7 @@ pub mod signin;
 // pub mod password_reset_email_triggered;
 
 // TODO: needs client/server feature gate
-// pub mod authenticated_request;
+pub mod authenticated_request;
 
 /// lazy way of writing `impl Future<Output = Result<..., Self::Error>>`,
 /// got sick of it, typed it waaaaaaaaay too many times
