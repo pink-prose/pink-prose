@@ -20,4 +20,8 @@ impl HashedPasswordVerifier {
 		let hash = Argon2::hash_and_salt(password_verifier.as_bytes(), salt)?;
 		Ok(Self(hash))
 	}
+
+	pub(crate) fn as_bytes(&self) -> &[u8; 32] {
+		self.0.to_hash_bytes()
+	}
 }

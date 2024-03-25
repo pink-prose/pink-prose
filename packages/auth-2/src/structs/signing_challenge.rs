@@ -18,3 +18,9 @@ impl Generatable for SigningChallenge {
 		Self(rand_array())
 	}
 }
+
+impl SigningChallenge {
+	pub fn as_bytes(&self) -> &[u8; 256] {
+		&self.0
+	}
+}

@@ -16,7 +16,6 @@ pub trait ServerSignup: Sized {
 			let SignupRequest {
 				email,
 				salt,
-				nonce,
 				password_verifier,
 				public_key,
 				encrypted_secret_key
@@ -41,7 +40,6 @@ pub trait ServerSignup: Sized {
 				password_verifier_salt,
 				public_key,
 				encrypted_secret_key,
-				encrypted_secret_key_nonce: nonce,
 				email_verification_token,
 				last_email_token_generate_time
 			};

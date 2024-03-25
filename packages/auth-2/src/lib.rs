@@ -11,7 +11,7 @@ pub mod structs;
 pub mod signup;
 
 // TODO: needs client/server feature gate
-// pub mod signin;
+pub mod signin;
 
 // TODO: needs client/server feature gate
 // pub mod verification_email;

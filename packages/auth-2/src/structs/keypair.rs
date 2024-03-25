@@ -1,4 +1,5 @@
 use crate::internal_prelude::*;
+use ::chacha20poly1305::Nonce;
 use ::p384::{
 	PublicKey as P384PublicKey,
 	SecretKey as P384SecretKey
@@ -82,25 +83,22 @@ pub struct EncryptedSecretKey(ChaCha20Poly1305);
 // }
 
 impl EncryptedSecretKey {
-	pub(crate) fn encrypt(
+	pub(crate) fn encrypt_nonce0(
 		secret_key: &SecretKey,
-		key: &ChaChaKey,
-		nonce: &ChaChaNonce
+		key: &ChaChaKey
 	) -> Result<Self> {
-		let encrypted = ChaCha20Poly1305::encrypt(
+		let encrypted = ChaCha20Poly1305::encrypt_nonce0(
 			&secret_key.to_vec()?,
-			key,
-			nonce
+			key
 		)?;
 		Ok(Self(encrypted))
 	}
 
-	pub(crate) fn decrypt(
+	pub(crate) fn decrypt_nonce0(
 		&self,
-		key: &ChaChaKey,
-		nonce: &ChaChaNonce
+		key: &ChaChaKey
 	) -> Result<SecretKey> {
-		let decrypted = self.0.decrypt(key, nonce)?;
+		let decrypted = self.0.decrypt_nonce0(key)?;
 		let secret_key = SecretKey::from_bytes(&decrypted)?;
 		Ok(secret_key)
 	}

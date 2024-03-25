@@ -16,17 +16,15 @@ pub trait ClientSignup: Sized {
 
 			let Keypair { public_key, secret_key } = Keypair::generate();
 			let salt = Salt::generate();
-			let nonce = ChaChaNonce::generate();
 
 			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
 			let password_verifier = PasswordVerifier::from_password_key(&password_key);
 			let password_chacha_key = ChaChaKey::from_password_key(&password_key);
-			let encrypted_secret_key = EncryptedSecretKey::encrypt(&secret_key, &password_chacha_key, &nonce)?;
+			let encrypted_secret_key = EncryptedSecretKey::encrypt_nonce0(&secret_key, &password_chacha_key)?;
 
 			let signup_request = SignupRequest {
 				email,
 				salt,
-				nonce,
 				password_verifier,
 				public_key,
 				encrypted_secret_key
