@@ -4,7 +4,8 @@ members = [
 	"packages/auth",
 	"packages/auth-2",
 	"packages/db",
-	"packages/frontend"
+	"packages/frontend",
+	"packages/model"
 ]
 
 [workspace.package]
@@ -13,7 +14,9 @@ edition = "2021"
 license = "AGPL-3.0-only"
 
 [workspace.dependencies]
+bitcode = "0.6.0"
 serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
 thiserror = "1.0.58"
 
 [profile.wasm-release]
