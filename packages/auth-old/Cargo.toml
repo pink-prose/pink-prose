@@ -1,5 +1,5 @@
 [package]
-name = "pinkprose-auth"
+name = "pinkprose-auth-old"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
