@@ -17,8 +17,8 @@ async fn main() {
 		let site_root = &leptos_opts.site_root;
 
 		App::new()
-			.service(Files::new("/lgpa", format!("{site_root}/lgpa")))
-			.service(Files::new("/sa", site_root))
+			.service(Files::new("/lgpa__", format!("{site_root}/lgpa__")))
+			.service(Files::new("/sa__", site_root))
 			.leptos_routes(
 				leptos_opts.to_owned(),
 				routes.to_owned(),
