@@ -1,3 +1,6 @@
+// TODO: remove later
+#![allow(dead_code, unused_imports, unused_variables)]
+
 #[cfg(feature = "ssr")]
 #[cfg_attr(feature = "ssr", actix_web::main)]
 async fn main() {

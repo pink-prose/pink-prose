@@ -1,6 +1,11 @@
+// TODO: remove later
+#![allow(dead_code, unused_imports, unused_variables)]
+
 use ::leptos::*;
 use ::leptos_meta::*;
 use ::leptos_router::*;
+
+mod auth;
 
 #[cfg(feature = "hydrate")]
 #[cfg_attr(feature = "hydrate", ::wasm_bindgen::prelude::wasm_bindgen)]
