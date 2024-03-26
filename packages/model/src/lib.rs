@@ -2,4 +2,5 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 pub mod api;
+pub mod db;
 pub mod user;

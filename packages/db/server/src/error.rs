@@ -4,4 +4,4 @@ pub enum Error {
 	Surreal(#[from] ::surrealdb::Error)
 }
 
-pub type Result<T = ()> = ::std::result::Result<T, Error>;
+pub type Result<T = (), E = Error> = ::std::result::Result<T, E>;

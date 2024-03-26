@@ -8,7 +8,7 @@ pub trait ClientAuthenticatedRequest: Sized {
 	fn submit_request(&mut self, request: &AuthenticatedRequest) -> fut!(AuthenticatedResponse);
 	fn finalise(self) -> fut!(());
 
-	fn run(self) -> sealed_fut!(()) {
+	fn run(self) -> sealed_fut!(AuthenticatedResponse) {
 		seal!(self, |mut client| async move {
 			let SessionClientInfo {
 				session_id,
@@ -23,10 +23,10 @@ pub trait ClientAuthenticatedRequest: Sized {
 				body_signature,
 				body
 			};
-			// TODO: do something with response
 			let response = client.submit_request(&request).await?;
 
-			client.finalise().await
+			client.finalise().await?;
+			Ok(response)
 		})
 	}
 }

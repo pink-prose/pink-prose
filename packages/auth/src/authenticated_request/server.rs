@@ -7,6 +7,7 @@ pub trait ServerAuthenticatedRequest: Sized {
 	fn get_stored_session_info(&mut self, session_id: &SessionID) -> fut!(SessionServerInfo);
 	fn finalise_invalid_signature(self) -> fut!(());
 	fn perform_request(&mut self, body: &[u8]) -> fut!(AuthenticatedResponse);
+	// TODO: likely some kind of "return response" fn here, after any processing we might want to do?
 	fn finalise(self) -> fut!(());
 
 	fn run(self) -> sealed_fut!(()) {

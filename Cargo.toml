@@ -1,9 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
+	"packages/api",
 	"packages/auth",
 	"packages/auth-old",
-	"packages/db",
+	"packages/db/connector",
+	"packages/db/server",
 	"packages/frontend",
 	"packages/model"
 ]

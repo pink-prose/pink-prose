@@ -1,7 +1,10 @@
+// TODO: remove later when more complete
+#![allow(dead_code, unused_imports, unused_variables)]
+
 #![allow(non_snake_case)]
 
 use self::error::*;
-use ::surrealdb::engine::local::{ Db, SpeeDb, TiKv };
+use ::surrealdb::engine::local::{ Db, SpeeDb };
 use ::surrealdb::Surreal;
 
 pub mod error;
@@ -12,33 +15,33 @@ pub struct Database {
 }
 
 impl Database {
-	/// For local development, stores data written to the provided location on disk.
-	/// Ideally not for production; for that use tikv connection
-	#[inline]
-	pub async fn connect_speedb(db_path: &str) -> Result<Self> {
-		let db = Surreal::new::<SpeeDb>(db_path).await?;
-		Ok(Self { db })
-	}
+	// /// For local development, stores data written to the provided location on disk.
+	// /// Ideally not for production; for that use tikv connection
+	// #[inline]
+	// pub async fn connect_speedb(db_path: &str) -> Result<Self> {
+	// 	let db = Surreal::new::<SpeeDb>(db_path).await?;
+	// 	Ok(Self { db })
+	// }
 
-	/// Connect to remote TiKV instance.
-	#[inline]
-	pub async fn connect_tikv(db_addr: &str) -> Result<Self> {
-		let db = Surreal::new::<TiKv>(db_addr).await?;
-		Ok(Self { db })
-	}
+	// /// Connect to remote TiKV instance.
+	// #[inline]
+	// pub async fn connect_tikv(db_addr: &str) -> Result<Self> {
+	// 	let db = Surreal::new::<TiKv>(db_addr).await?;
+	// 	Ok(Self { db })
+	// }
 
-	pub async fn define_tables_unstable(&self) -> Result {
-		self.db.query(query!("define_tables"))
-			.await?;
-		Ok(())
-	}
+	// pub async fn define_tables_unstable(&self) -> Result {
+	// 	self.db.query(query!("define_tables"))
+	// 		.await?;
+	// 	Ok(())
+	// }
 
-	pub async fn user__create(&self, opts: opts::UserCreate<'_>) -> Result {
-		self.db.query(query!("user__create"))
-			.bind(opts)
-			.await?;
-		Ok(())
-	}
+	// pub async fn user__create(&self, opts: opts::UserCreate<'_>) -> Result {
+	// 	self.db.query(query!("user__create"))
+	// 		.bind(opts)
+	// 		.await?;
+	// 	Ok(())
+	// }
 
 
 
