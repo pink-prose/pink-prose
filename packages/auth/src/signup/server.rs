@@ -11,18 +11,18 @@ pub trait ServerSignup: Sized {
 	fn send_response(&mut self, response: &SignupResponse) -> fut!(());
 	fn finalise(self) -> fut!(());
 
-	fn run(self) -> sealed_fut!(()) {
-		seal!(self, |mut server| async move {
+	fn run(mut self) -> sealed_fut!(()) {
+		seal!(async move {
 			let SignupRequest {
 				email,
 				salt,
 				password_verifier,
 				public_key,
 				encrypted_secret_key
-			} = server.receive_request().await?;
+			} = self.receive_request().await?;
 
-			let unique = server.ensure_unique_and_reserve(&email).await?;
-			if !unique { return server.finalise_email_not_unique().await }
+			let unique = self.ensure_unique_and_reserve(&email).await?;
+			if !unique { return self.finalise_email_not_unique().await }
 
 			let password_verifier_salt = Salt::generate();
 			let email_verification_token = EmailVerificationToken::generate();
@@ -43,14 +43,14 @@ pub trait ServerSignup: Sized {
 				email_verification_token,
 				last_email_token_generate_time
 			};
-			server.store_unverified_user_data(&stored_data).await?;
+			self.store_unverified_user_data(&stored_data).await?;
 
-			server.send_verification_email(&stored_data.email, &stored_data.email_verification_token).await?;
+			self.send_verification_email(&stored_data.email, &stored_data.email_verification_token).await?;
 
 			let response = SignupResponse {};
-			server.send_response(&response).await?;
+			self.send_response(&response).await?;
 
-			server.finalise().await
+			self.finalise().await
 		})
 	}
 }

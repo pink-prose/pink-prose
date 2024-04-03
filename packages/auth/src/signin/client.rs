@@ -10,12 +10,12 @@ pub trait ClientSignin: Sized {
 	fn store_session_info(&mut self, session_info: &SessionClientInfo) -> fut!(());
 	fn finalise(self) -> fut!(());
 
-	fn run(self) -> sealed_fut!(()) {
-		seal!(self, |mut client| async move {
+	fn run(mut self) -> sealed_fut!(()) {
+		seal!(async move {
 			let SigninForm {
 				email,
 				password
-			} = client.get_signin_form().await?;
+			} = self.get_signin_form().await?;
 
 			let request_s1 = SigninS1Request {
 				email
@@ -23,7 +23,7 @@ pub trait ClientSignin: Sized {
 			let SigninS1Response {
 				salt,
 				signin_attempt_id
-			} = client.submit_s1_request(&request_s1).await?;
+			} = self.submit_s1_request(&request_s1).await?;
 
 			let password_key = PasswordKey::from_pw_and_salt(&password, &salt)?;
 			let password_verifier = PasswordVerifier::from_password_key(&password_key);
@@ -35,7 +35,7 @@ pub trait ClientSignin: Sized {
 			let SigninS2Response {
 				encrypted_secret_key,
 				signing_challenge
-			} = client.submit_s2_request(&request_s2).await?;
+			} = self.submit_s2_request(&request_s2).await?;
 
 			let password_chacha_key = ChaChaKey::from_password_key(&password_key);
 			let secret_key = encrypted_secret_key.decrypt_nonce0(&password_chacha_key)?;
@@ -54,15 +54,15 @@ pub trait ClientSignin: Sized {
 			};
 			let SigninS3Response {
 				session_id
-			} = client.submit_s3_request(&request_s3).await?;
+			} = self.submit_s3_request(&request_s3).await?;
 
 			let session_info = SessionClientInfo {
 				session_id,
 				session_secret_key
 			};
-			client.store_session_info(&session_info).await?;
+			self.store_session_info(&session_info).await?;
 
-			client.finalise().await
+			self.finalise().await
 		})
 	}
 }

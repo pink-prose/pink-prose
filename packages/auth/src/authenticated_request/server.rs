@@ -10,26 +10,26 @@ pub trait ServerAuthenticatedRequest: Sized {
 	// TODO: likely some kind of "return response" fn here, after any processing we might want to do?
 	fn finalise(self) -> fut!(());
 
-	fn run(self) -> sealed_fut!(()) {
-		seal!(self, |mut server| async move {
+	fn run(mut self) -> sealed_fut!(()) {
+		seal!(async move {
 			let AuthenticatedRequest {
 				session_id,
 				body_signature,
 				body
-			} = server.receive_request().await?;
+			} = self.receive_request().await?;
 
 			let SessionServerInfo {
 				session_id: _,
 				session_public_key
-			} = server.get_stored_session_info(&session_id).await?;
+			} = self.get_stored_session_info(&session_id).await?;
 
 			let valid = session_public_key.verify(&body, &body_signature);
-			if !valid { return server.finalise_invalid_signature().await }
+			if !valid { return self.finalise_invalid_signature().await }
 
 			// TODO figure this out? body? whatever stuff
-			let response = server.perform_request(&body).await?;
+			let response = self.perform_request(&body).await?;
 
-			server.finalise().await
+			self.finalise().await
 		})
 	}
 }

@@ -7,12 +7,12 @@ pub trait ClientSignup: Sized {
 	fn submit_request(&mut self, signup_request: &SignupRequest) -> fut!(SignupResponse);
 	fn finalise(self) -> fut!(());
 
-	fn run(self) -> sealed_fut!(()) {
-		seal!(self, |mut client| async move {
+	fn run(mut self) -> sealed_fut!(()) {
+		seal!(async move {
 			let SignupForm {
 				email,
 				password
-			} = client.get_signup_form().await?;
+			} = self.get_signup_form().await?;
 
 			let Keypair { public_key, secret_key } = Keypair::generate();
 			let salt = Salt::generate();
@@ -29,8 +29,8 @@ pub trait ClientSignup: Sized {
 				public_key,
 				encrypted_secret_key
 			};
-			let SignupResponse {} = client.submit_request(&signup_request).await?;
-			client.finalise().await
+			let SignupResponse {} = self.submit_request(&signup_request).await?;
+			self.finalise().await
 		})
 	}
 }

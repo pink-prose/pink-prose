@@ -5,35 +5,31 @@ use ::std::future::{ IntoFuture, Future };
 // 2. SealedFutureImpl, the only implementor, is not constructable outside the crate either
 
 /// See docs on [`SealedFuture`] for more info
-pub struct SealedFutureImpl<V, F> {
-	/// the single param to the function
-	value: V,
-	/// Function that returns future
-	function: F
+pub struct SealedFutureImpl<F> {
+	/// future
+	future: F
 }
 
-impl<V, F, Fu> SealedFutureImpl<V, F>
+impl<F> SealedFutureImpl<F>
 where
-	F: FnOnce(V) -> Fu,
-	Fu: Future
+	F: Future
 {
 	#[inline]
-	pub(crate) fn new(value: V, function: F) -> Self {
-		Self { value, function }
+	pub(crate) fn new(future: F) -> Self {
+		Self { future }
 	}
 }
 
-impl<V, F, Fu> IntoFuture for SealedFutureImpl<V, F>
+impl<F> IntoFuture for SealedFutureImpl<F>
 where
-	F: FnOnce(V) -> Fu,
-	Fu: Future
+	F: Future
 {
-	type Output = Fu::Output;
-	type IntoFuture = Fu;
+	type Output = F::Output;
+	type IntoFuture = F;
 
 	#[inline]
 	fn into_future(self) -> Self::IntoFuture {
-		(self.function)(self.value)
+		self.future
 	}
 }
 
@@ -47,16 +43,14 @@ where
 /// code to rely on the default impl.
 pub trait SealedFuture<T>: IntoFuture<Output = T> + private::Sealed {}
 
-impl<V, F, Fu> private::Sealed for SealedFutureImpl<V, F>
+impl<F> private::Sealed for SealedFutureImpl<F>
 where
-	F: FnOnce(V) -> Fu,
-	Fu: Future
+	F: Future
 {}
 
-impl<V, F, Fu> SealedFuture<Fu::Output> for SealedFutureImpl<V, F>
+impl<F> SealedFuture<F::Output> for SealedFutureImpl<F>
 where
-	F: FnOnce(V) -> Fu,
-	Fu: Future
+	F: Future
 {}
 
 mod private {

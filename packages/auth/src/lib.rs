@@ -42,7 +42,7 @@ macro_rules! sealed_fut {
 use sealed_fut;
 
 macro_rules! seal {
-	($v:ident, $f:expr) => { $crate::structs::SealedFutureImpl::new($v, $f) }
+	($f:expr) => { $crate::structs::SealedFutureImpl::new($f) }
 }
 use seal;
 
