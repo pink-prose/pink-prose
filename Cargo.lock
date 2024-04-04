@@ -3093,6 +3093,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pinkprose-id"
+version = "0.1.0"
+dependencies = [
+ "rand",
+]
+
+[[package]]
 name = "pinkprose-model"
 version = "0.1.0"
 dependencies = [
