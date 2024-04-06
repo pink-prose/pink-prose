@@ -7,13 +7,6 @@
 use ::rand::{ Rng, rngs::ThreadRng, thread_rng };
 use ::std::time::{ SystemTime, UNIX_EPOCH };
 
-const CUSTOM_EPOCH_SHIFT_AMOUNT: u64 = 40;
-
-/// roughly 3 nov 2004. This is highest power of two that's still before now
-/// (at time of writing). Maybe we can make use of the fact that this is power of 2
-/// to do something with this optimisation-related later, I dunno
-const CUSTOM_EPOCH: u64 = 1 << CUSTOM_EPOCH_SHIFT_AMOUNT;
-
 /// 46 bits gives space for >2000years with millisecond precision.
 /// 18 bits remaining after this
 const TIMESTAMP_SHIFT: u64 = 64 - 46;
@@ -30,12 +23,13 @@ const MAX_COUNT: u32 = 1 << 14;
 const RANDOM_COMPONENT_MASK: u8 = 0b1111;
 
 /// counting from the most significant to least significant bit, bits 1 to 64:
-/// - (1-46) 46 bits for timestamp (this is >2000years with millisecond precision and custom epoch)
-/// - (47-60) 14 bits for increment (this is max 16384 IDs/ms, or 16M ID/s)
+/// - (1-46) 46 bits for timestamp (this is >2000years with millisecond precision,
+///   up to year 4199)
+/// - (47-60) 14 bits for increment (this is max 16384 IDs/ms, or 16M IDs/s)
 /// - (61-64) last 4 bits for randomness (so IDs within one ms aren't just increments)
-/// IDs generated from one single factory will monotonically increase.
+/// IDs generated from one single factory are guaranteed to monotonically increase.
 pub struct IDGen {
-	/// regular unix epoch
+	/// unix epoch time
 	last_generated_time: u64,
 	// 19 bits fits in u32 (duh)
 	count: u32,
@@ -67,7 +61,7 @@ impl IDGen {
 		}
 
 		(self.count < MAX_COUNT).then(|| {
-			let now_custom_epoch = (self.last_generated_time - CUSTOM_EPOCH) << TIMESTAMP_SHIFT;
+			let now = self.last_generated_time << TIMESTAMP_SHIFT;
 			let random = (self.rng.gen::<u8>() & RANDOM_COMPONENT_MASK) as u64;
 
 			// guaranteed to fit within 14 bits, as checked by
@@ -75,7 +69,7 @@ impl IDGen {
 			let increment = (self.count << COUNT_SHIFT) as u64;
 			self.count += 1;
 
-			let id = now_custom_epoch | random | increment;
+			let id = now | random | increment;
 			GeneratedID { uint: id }
 		})
 	}
@@ -84,7 +78,7 @@ impl IDGen {
 impl GeneratedID {
 	#[inline]
 	pub fn unix_time(&self) -> u64 {
-		(self.uint >> TIMESTAMP_SHIFT) + CUSTOM_EPOCH
+		self.uint >> TIMESTAMP_SHIFT
 	}
 
 	#[inline]
