@@ -22,6 +22,10 @@ const MAX_COUNT: u32 = 1 << 14;
 /// keep only 4 lower bits of random byte.
 const RANDOM_COMPONENT_MASK: u8 = 0b1111;
 
+/// When storing as an iint, we flip the top bit (two's complement), so sorting
+/// numerically by this iint representation of the ID will still work.
+const TOP_BIT: u64 = 1 << (u64::BITS - 1);
+
 /// counting from the most significant to least significant bit, bits 1 to 64:
 /// - (1-46) 46 bits for timestamp (this is >2000years with millisecond precision,
 ///   up to year 4199)
@@ -83,11 +87,46 @@ impl GeneratedID {
 
 	#[inline]
 	pub fn as_iint(&self) -> i64 {
-		self.uint as i64
+		(self.uint ^ TOP_BIT) as i64
 	}
 
 	#[inline]
 	pub fn as_uint(&self) -> u64 {
 		self.uint
+	}
+
+	#[inline]
+	pub fn from_iint(iint: i64) -> Self {
+		let uint = (iint as u64) ^ TOP_BIT;
+		Self { uint }
+	}
+
+	#[inline]
+	pub fn from_uint(uint: u64) -> Self {
+		Self { uint }
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn iint_conversion() {
+		let mut idgen = IDGen::new();
+
+		for i in 0..1000 {
+			let id = idgen.next().unwrap();
+
+			let uint_converted = GeneratedID::from_uint(id.as_uint());
+			assert_eq!(id.uint, uint_converted.uint);
+
+			let iint_converted = GeneratedID::from_iint(id.as_iint());
+			assert_eq!(id.uint, iint_converted.uint);
+
+			if i % 50 == 0 {
+				std::thread::sleep(std::time::Duration::from_millis(1));
+			}
+		}
 	}
 }
