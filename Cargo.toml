@@ -53,6 +53,9 @@ version = "0.1.7"
 [workspace.dependencies.constant_time_eq]
 version = "0.3.0"
 
+[workspace.dependencies.crossbeam-channel]
+version = "0.5.12"
+
 [workspace.dependencies.getrandom]
 version = "0.2.12"
 
@@ -89,6 +92,9 @@ features = ["derive"]
 
 [workspace.dependencies.serde_json]
 version = "1.0.114"
+
+[workspace.dependencies.spin_sleep]
+version = "1.2.0"
 
 [workspace.dependencies.surrealdb]
 version = "1.3.0"

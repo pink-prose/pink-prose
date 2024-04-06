@@ -4,6 +4,8 @@
 	clippy::should_implement_trait
 )]
 
+pub mod channel;
+
 use ::rand::{ Rng, rngs::ThreadRng, thread_rng };
 use ::std::time::{ SystemTime, UNIX_EPOCH };
 
@@ -32,7 +34,7 @@ const TOP_BIT: u64 = 1 << (u64::BITS - 1);
 /// - (47-60) 14 bits for increment (this is max 16384 IDs/ms, or 16M IDs/s)
 /// - (61-64) last 4 bits for randomness (so IDs within one ms aren't just increments)
 /// IDs generated from one single factory are guaranteed to monotonically increase.
-pub struct IDGen {
+pub struct IDGenerator {
 	/// unix epoch time
 	last_generated_time: u64,
 	// 19 bits fits in u32 (duh)
@@ -45,7 +47,7 @@ pub struct GeneratedID {
 	uint: u64
 }
 
-impl IDGen {
+impl IDGenerator {
 	pub fn new() -> Self {
 		let last_generated_time = 0;
 		let count = 0;
@@ -113,7 +115,7 @@ mod tests {
 
 	#[test]
 	fn iint_conversion() {
-		let mut idgen = IDGen::new();
+		let mut idgen = IDGenerator::new();
 
 		for i in 0..1000 {
 			let id = idgen.next().unwrap();

@@ -6,4 +6,6 @@ license = { workspace = true }
 publish = false
 
 [dependencies]
+crossbeam-channel = { workspace = true }
 rand = { workspace = true }
+spin_sleep = { workspace = true }
