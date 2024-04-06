@@ -1,17 +1,17 @@
 [package]
 name = "pinkprose-api"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 publish = false
 
 [dependencies]
-bitcode.workspace = true
-serde.workspace = true
-thiserror.workspace = true
-wasm-bindgen = { version = "0.2.92", optional = true }
-wasm-bindgen-futures = { version = "0.4.42", optional = true }
-web-sys = { version = "0.3.69", optional = true }
+bitcode = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true }
 
 [features]
 client = [

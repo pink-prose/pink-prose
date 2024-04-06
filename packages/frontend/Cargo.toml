@@ -1,31 +1,32 @@
 [package]
 name = "pinkprose-frontend"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 publish = false
 
 [dependencies]
-actix-files = { version = "0.6.5", optional = true }
-actix-web = { version = "4.5.1", optional = true }
-anyhow = "1.0.81"
-console_error_panic_hook = { version = "0.1.7", optional = true }
-http = { version = "1.1.0", optional = true }
-leptos = { version = "0.6.9", features = ["nightly"] }
-leptos_actix = { version = "0.6.9", optional = true }
-leptos_meta = { version = "0.6.9", features = ["nightly"] }
-leptos_router = { version = "0.6.9", features = ["nightly"] }
-pinkprose-api = { path = "../api" }
-pinkprose-auth = { path = "../auth" }
-wasm-bindgen = "0.2.92"
+actix-files = { workspace = true, optional = true }
+actix-web = { workspace = true, optional = true }
+anyhow = { workspace = true }
+console_error_panic_hook = { workspace = true, optional = true }
+# http = { workspace = true, optional = true }
+leptos = { workspace = true }
+leptos_actix = { workspace = true, optional = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+# pinkprose-api = { workspace = true }
+pinkprose-auth = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
 
 [features]
 hydrate = [
 	"dep:console_error_panic_hook",
+	"dep:wasm-bindgen",
 	"leptos/hydrate",
 	"leptos_meta/hydrate",
 	"leptos_router/hydrate",
-	"pinkprose-auth/client"
+	# "pinkprose-auth/client"
 ]
 ssr = [
 	"dep:actix-files",
@@ -34,7 +35,7 @@ ssr = [
 	"leptos/ssr",
 	"leptos_meta/ssr",
 	"leptos_router/ssr",
-	"pinkprose-auth/server"
+	# "pinkprose-auth/server"
 ]
 
 [package.metadata.leptos]

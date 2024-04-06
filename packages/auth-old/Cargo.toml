@@ -1,22 +1,23 @@
 [package]
 name = "pinkprose-auth-old"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 publish = false
 
 [dependencies]
-argon2 = "0.5.3"
-blake3 = "1.5.1"
-chacha20poly1305 = "0.10.1"
-constant_time_eq = "0.3.0"
-getrandom = "0.2.12"
-hex = "0.4.3"
-p384 = "0.13.0"
-rand.workspace = true
-thiserror.workspace = true
-validator = "0.17.0"
+argon2 = { workspace = true }
+blake3 = { workspace = true }
+chacha20poly1305 = { workspace = true }
+constant_time_eq = { workspace = true }
+getrandom = { workspace = true }
+p384 = { workspace = true }
+rand = { workspace = true }
+thiserror = { workspace = true }
+validator = { workspace = true }
+wiwi = { workspace = true }
 
 [features]
-client = ["getrandom/js"]
-server = []
+# move getrandom/js to its own feature?? cause not all clients are js
+# client = ["getrandom/js"]
+# server = []

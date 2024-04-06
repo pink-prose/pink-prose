@@ -11,7 +11,7 @@ pub enum Error {
 	#[error(transparent)]
 	FromUTF8(#[from] ::std::string::FromUtf8Error),
 	#[error(transparent)]
-	Hex(#[from] ::hex::FromHexError),
+	Hex(#[from] ::wiwi::hex::DecodeError),
 	#[error("email {0} is invalid")]
 	InvalidEmail(String),
 	#[error(transparent)]

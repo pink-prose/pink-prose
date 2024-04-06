@@ -14,7 +14,7 @@ pub struct Argon2 {
 impl StructsCommon for Argon2 {
 	fn to_string(&self) -> Result<String> {
 		let Self { alg, m_cost, t_cost, p_cost, output_len, bytes } = self;
-		let hex = ::hex::encode(bytes as &[u8]);
+		let hex = ::wiwi::hex::encode_hex(bytes as &[u8]);
 		Ok(format!("{alg}-{m_cost}-{t_cost}-{p_cost}-{output_len}-{hex}"))
 	}
 
@@ -31,7 +31,7 @@ impl StructsCommon for Argon2 {
 		let t_cost = try_next!().parse()?;
 		let p_cost = try_next!().parse()?;
 		let output_len = try_next!().parse()?;
-		let bytes = ::hex::decode(try_next!().as_bytes())?
+		let bytes = ::wiwi::hex::decode_hex(try_next!().as_bytes())?
 			.try_into()
 			.map_err(|_| Error::TryIntoArray)?;
 		assert!(iter.next().is_none());

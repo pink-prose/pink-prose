@@ -6,11 +6,11 @@ pub struct ChaCha20Poly1305(Vec<u8>);
 
 impl StructsCommon for ChaCha20Poly1305 {
 	fn to_string(&self) -> Result<String> {
-		Ok(::hex::encode(&*self.0))
+		Ok(::wiwi::hex::encode_hex(&*self.0))
 	}
 
 	fn from_str(s: &str) -> Result<Self> {
-		Ok(Self(::hex::decode(s.as_bytes())?))
+		Ok(Self(::wiwi::hex::decode_hex(s.as_bytes())?))
 	}
 }
 

@@ -1,11 +1,11 @@
 [package]
 name = "pinkprose-db-connector"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 publish = false
 
 [dependencies]
-tokio-tungstenite = { version = "0.21.0", features = ["rustls-tls-webpki-roots"] }
+tokio-tungstenite = { workspace = true }
 
 [features]

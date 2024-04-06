@@ -1,9 +1,9 @@
 [package]
 name = "pinkprose-id"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 publish = false
 
 [dependencies]
-rand.workspace = true
+rand = { workspace = true }
