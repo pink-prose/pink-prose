@@ -18,6 +18,14 @@ pub fn hydrate() {
 pub fn App() -> impl IntoView {
 	provide_meta_context();
 
+	#[cfg(feature = "hydrate")]
+	spawn_local(async {
+		let res = pinkprose_api::auth::signup::signup_client().await;
+		logging::log!("{res:?}");
+	});
+	#[cfg(feature = "hydrate")]
+	logging::log!("fewjoijoijewf;");
+
 	view! {
 		<Router>
 			<Routes>

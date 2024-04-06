@@ -1,7 +1,7 @@
 // TODO: remove later when more complete
-#![allow(dead_code, unused_imports, unused_variables)]
+#![allow(dead_code, unused_imports, unused_mut, unused_variables)]
 
-// pub mod auth;
+pub mod auth;
 
 mod internal_prelude {
 	pub use ::bitcode::{ Decode, Encode };

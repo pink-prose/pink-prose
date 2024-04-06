@@ -3088,6 +3088,7 @@ dependencies = [
  "leptos_actix",
  "leptos_meta",
  "leptos_router",
+ "pinkprose-api",
  "pinkprose-auth",
  "wasm-bindgen",
 ]

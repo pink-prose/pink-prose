@@ -4,8 +4,8 @@
 #![allow(non_snake_case)]
 
 use self::error::*;
-use ::surrealdb::engine::local::{ Db, SpeeDb };
 use ::surrealdb::Surreal;
+use ::surrealdb::engine::local::Db;
 
 pub mod error;
 pub mod opts;
@@ -15,13 +15,14 @@ pub struct Database {
 }
 
 impl Database {
-	// /// For local development, stores data written to the provided location on disk.
-	// /// Ideally not for production; for that use tikv connection
-	// #[inline]
-	// pub async fn connect_speedb(db_path: &str) -> Result<Self> {
-	// 	let db = Surreal::new::<SpeeDb>(db_path).await?;
-	// 	Ok(Self { db })
-	// }
+	/// For local development, stores data written to the provided location on disk.
+	/// Ideally not for production; for that use tikv connection
+	#[inline]
+	pub async fn connect_speedb(db_path: &str) -> Result<Self> {
+		use ::surrealdb::engine::local::SpeeDb;
+		let db = Surreal::new::<SpeeDb>(db_path).await?;
+		Ok(Self { db })
+	}
 
 	// /// Connect to remote TiKV instance.
 	// #[inline]
