@@ -4,7 +4,7 @@ use ::std::thread::spawn;
 use ::std::time::Duration;
 use ::spin_sleep::SpinSleeper;
 
-pub fn spawn_generator_thread() -> Receiver<GeneratedID> {
+pub fn spawn_generator_thread() -> impl Fn() -> GeneratedID + Clone {
 	let sleeper = SpinSleeper::default();
 	let sleep_duration = Duration::from_micros(250);
 	let (sender, receiver) = bounded(0);
@@ -33,5 +33,11 @@ pub fn spawn_generator_thread() -> Receiver<GeneratedID> {
 		}
 	});
 
-	receiver
+	#[inline]
+	move || unsafe {
+		// SAFETY: this will only error if the channel is disconnected. We
+		// won't disconnect from sender side, the sender will only stop when
+		// all receivers are dropped. Therefore this will never return an error.
+		receiver.recv().unwrap_unchecked()
+	}
 }
