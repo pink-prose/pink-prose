@@ -3,15 +3,15 @@ use super::*;
 pub trait ServerSignup: Sized {
 	type Error: From<Error>;
 
-	fn receive_request(&mut self) -> fut!(SignupRequest);
 	fn ensure_unique_and_reserve(&mut self, email: &Email) -> fut!(bool);
 	fn finalise_email_not_unique(self) -> fut!(());
+
 	fn store_unverified_user_data(&mut self, data: &StoredSignupData) -> fut!(());
 	fn send_verification_email(&mut self, email: &Email, email_verification_token: &EmailVerificationToken) -> fut!(());
 	fn send_response(&mut self, response: &SignupResponse) -> fut!(());
 	fn finalise(self) -> fut!(());
 
-	fn run(mut self) -> sealed_fut!(()) {
+	fn run(mut self, signup_request: SignupRequest) -> sealed_fut!(()) {
 		seal!(async move {
 			let SignupRequest {
 				email,
@@ -19,7 +19,7 @@ pub trait ServerSignup: Sized {
 				password_verifier,
 				public_key,
 				encrypted_secret_key
-			} = self.receive_request().await?;
+			} = signup_request;
 
 			let unique = self.ensure_unique_and_reserve(&email).await?;
 			if !unique { return self.finalise_email_not_unique().await }
@@ -48,6 +48,8 @@ pub trait ServerSignup: Sized {
 			self.send_verification_email(&stored_data.email, &stored_data.email_verification_token).await?;
 
 			let response = SignupResponse {};
+			// Ok(response)
+			// Ok(())
 			self.send_response(&response).await?;
 
 			self.finalise().await

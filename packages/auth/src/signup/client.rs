@@ -3,16 +3,15 @@ use super::*;
 pub trait ClientSignup: Sized {
 	type Error: From<Error>;
 
-	fn get_signup_form(&mut self) -> fut!(SignupForm);
 	fn submit_request(&mut self, signup_request: &SignupRequest) -> fut!(SignupResponse);
 	fn finalise(self) -> fut!(());
 
-	fn run(mut self) -> sealed_fut!(()) {
+	fn run(mut self, signup_form: SignupForm) -> sealed_fut!(()) {
 		seal!(async move {
 			let SignupForm {
 				email,
 				password
-			} = self.get_signup_form().await?;
+			} = signup_form;
 
 			let Keypair { public_key, secret_key } = Keypair::generate();
 			let salt = Salt::generate();
