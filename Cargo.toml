@@ -1,19 +1,19 @@
 [workspace]
 resolver = "2"
 members = [
-	"packages/api",
-	"packages/auth",
-	"packages/auth-old",
-	"packages/db/connector",
-	"packages/db/server",
+	# "packages/api",
+	# "packages/auth",
+	# "packages/auth-old",
+	# "packages/db/connector",
+	# "packages/db/server",
 	"packages/frontend",
-	"packages/id",
+	# "packages/id",
 	"packages/model"
 ]
 
 [profile.wasm-release]
 inherits = "release"
-opt-level = "z"
+opt-level = "s"
 lto = true
 codegen-units = 1
 panic = "abort"
@@ -34,9 +34,6 @@ version = "1.0.81"
 
 [workspace.dependencies.argon2]
 version = "0.5.3"
-
-[workspace.dependencies.bitcode]
-version = "0.6.0"
 
 [workspace.dependencies.blake3]
 version = "1.5.1"
@@ -79,9 +76,6 @@ features = ["nightly"]
 
 [workspace.dependencies.p384]
 version = "0.13.0"
-
-[workspace.dependencies.pinkprose-auth]
-path = "packages/auth"
 
 [workspace.dependencies.rand]
 version = "0.8.5"

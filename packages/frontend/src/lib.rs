@@ -5,8 +5,6 @@ use ::leptos::*;
 use ::leptos_meta::*;
 use ::leptos_router::*;
 
-mod auth;
-
 #[cfg(feature = "hydrate")]
 #[cfg_attr(feature = "hydrate", ::wasm_bindgen::prelude::wasm_bindgen)]
 pub fn hydrate() {

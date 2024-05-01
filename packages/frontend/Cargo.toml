@@ -16,7 +16,7 @@ leptos_actix = { workspace = true, optional = true }
 leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
 # pinkprose-api = { workspace = true }
-pinkprose-auth = { workspace = true }
+# pinkprose-auth = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
 
 [features]
