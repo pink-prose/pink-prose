@@ -4,6 +4,7 @@ members = [
 	# "packages/api",
 	# "packages/auth",
 	# "packages/auth-old",
+	"packages/backend",
 	# "packages/db/connector",
 	# "packages/db/server",
 	"packages/frontend",

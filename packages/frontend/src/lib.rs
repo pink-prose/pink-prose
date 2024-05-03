@@ -1,5 +1,11 @@
 // TODO: remove later
-#![allow(dead_code, unused_imports, unused_variables)]
+#![allow(
+	dead_code,
+	unused_imports,
+	unused_macros,
+	unused_mut,
+	unused_variables
+)]
 
 use ::leptos::*;
 use ::leptos_meta::*;
