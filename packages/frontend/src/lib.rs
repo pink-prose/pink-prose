@@ -1,3 +1,4 @@
+/*
 // TODO: remove later
 #![allow(
 	dead_code,
@@ -41,3 +42,6 @@ fn Home() -> impl IntoView {
 fn NotFound() -> impl IntoView {
 	"404 not found"
 }
+*/ // lol, that /*any in that string is breaking it
+*/
+*/

@@ -1,3 +1,4 @@
+/*
 // TODO: remove later
 #![allow(dead_code, unused_imports, unused_variables)]
 
@@ -42,3 +43,6 @@ fn main() {
 	println!("Hi you are on server binary but it isn't compiled with the `ssr` feature enabled. Are you using `cargo leptos`? look in the project readme if you're stuck.");
 	::std::process::exit(69);
 }
+*/
+
+fn main() {}
