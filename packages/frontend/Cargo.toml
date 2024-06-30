@@ -1,0 +1,16 @@
+[package]
+name = "pink-prose"
+version = "0.1.0"
+authors = ["Meadowsys <blazeykirin@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+dioxus = { workspace = true, features = ["fullstack", "router"] }
+dioxus-logger = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+default = []
+server = ["dioxus/axum"]
+web = ["dioxus/web"]

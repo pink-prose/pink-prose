@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-	"packages/backend"
+	"packages/backend",
+	"packages/frontend"
 ]
 
 [profile.wasm-release]
@@ -21,3 +22,19 @@ version = "4.5.1"
 
 [workspace.dependencies.anyhow]
 version = "1.0.81"
+
+[workspace.dependencies.dioxus]
+version = "0.5.1"
+
+[workspace.dependencies.dioxus-router]
+version = "0.5.0"
+
+[workspace.dependencies.dioxus-logger]
+version = "0.5.1"
+
+[workspace.dependencies.serde]
+version = "1.0.203"
+features = ["derive"]
+
+[workspace.dependencies.tracing]
+version = "0.1.40"
