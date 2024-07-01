@@ -37,6 +37,7 @@ ssr = [
 [package.metadata.leptos]
 site-root = "target/site-build"
 site-pkg-dir = "-"
+style-file = "../../target/unoptimised.css"
 assets-dir = "assets"
 site-addr = "127.0.0.1:3000"
 reload-port = 3001
