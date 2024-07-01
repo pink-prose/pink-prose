@@ -12,6 +12,7 @@ crate-type = ["cdylib", "rlib"]
 actix-files = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true }
 anyhow = { workspace = true }
+catppuccin = { workspace = true }
 http = { workspace = true, optional = true }
 leptos = { workspace = true }
 leptos_meta = { workspace = true }

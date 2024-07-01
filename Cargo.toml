@@ -26,14 +26,8 @@ features = ["macros"]
 [workspace.dependencies.anyhow]
 version = "1.0.81"
 
-[workspace.dependencies.dioxus]
-version = "0.5.1"
-
-[workspace.dependencies.dioxus-router]
-version = "0.5.0"
-
-[workspace.dependencies.dioxus-logger]
-version = "0.5.1"
+[workspace.dependencies.catppuccin]
+version = "2.4.0"
 
 [workspace.dependencies.http]
 version = "1.1.0"
