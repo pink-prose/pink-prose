@@ -18,8 +18,8 @@ pub async fn ssr_main() -> Result<()> {
 		let site_root = &*config.leptos_options.site_root;
 
 		ActixApp::new()
-			.service(ActixFiles::new("/pkg", &*format!("{site_root}/pkg")))
-			.service(ActixFiles::new("/assets", site_root))
+			.service(ActixFiles::new("/-", &*format!("{site_root}/-")))
+			.service(ActixFiles::new("/-a", site_root))
 			// TODO: favicon?
 			.leptos_routes(config.leptos_options.clone(), routes.clone(), App)
 			.app_data(Data::new(config.leptos_options.clone()))

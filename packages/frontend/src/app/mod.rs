@@ -7,7 +7,7 @@ pub fn App() -> impl IntoView {
 	provide_meta_context();
 
 	view! {
-		<Stylesheet id="leptos" href="/pkg/pink-prose.css" />
+		<Stylesheet id="leptos" href="/-/pink-prose-frontend.css" />
 		<Title text="Welcome to Leptos" />
 
 		<Router>
