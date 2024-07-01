@@ -1,19 +1,28 @@
+#![allow(
+	dead_code,
+	unused_imports,
+	unused_macros,
+	unused_mut,
+	unused_variables
+)]
+
 use dioxus::prelude::*;
+use dioxus_router::prelude::*;
+use serde::{ Deserialize, Serialize };
 use tracing::{ Level, info };
 
-
-#[derive(Clone, Routable, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, Routable, Serialize, Deserialize)]
 enum Route {
 	#[route("/")]
+	#[layout(RootLayout)]
 	Home {},
-	#[route("/blog/:id")]
-	Blog { id: i32 },
+	#[route("/signin")]
+	SignIn {}
 }
 
-
 fn main() {
-	// Init logger
-	dioxus_logger::init(Level::INFO).expect("failed to init logger");
+	dioxus_logger::init(Level::INFO)
+		.expect("failed to init logger");
 	launch(App);
 }
 
@@ -25,52 +34,34 @@ fn App() -> Element {
 }
 
 #[component]
-fn Blog(id: i32) -> Element {
+fn Home() -> Element {
 	rsx! {
-		Link { to: Route::Home {}, "Go to counter" }
-		"Blog post {id}"
+		"home page"
+		Link { to: "/signin", "go signin page" }
 	}
 }
 
 #[component]
-fn Home() -> Element {
-	let mut count = use_signal(|| 0);
-	let mut text = use_signal(|| String::from("..."));
-
+fn SignIn() -> Element {
 	rsx! {
-		Link {
-			to: Route::Blog {
-				id: count()
-			},
-			"Go to blog"
-		}
-		div {
-			h1 { "classic counter: {count}" }
-			button { onclick: move |_| count += 1, "+1" }
-			button { onclick: move |_| count -= 1, "-1" }
-			button {
-				onclick: move |_| async move {
-					if let Ok(data) = get_server_data().await {
-						tracing::info!("Client received: {}", data);
-						text.set(data.clone());
-						post_server_data(data).await.unwrap();
-					}
-				},
-				"Get Server Data"
-			}
-			p { "Server data: {text}" }
-		}
+		"signin page"
+		Link { to: "/", "go home" }
 	}
 }
 
-
-#[server(PostServerData)]
-async fn post_server_data(data: String) -> Result<(), ServerFnError> {
-	info!("Server received: {}", data);
-	Ok(())
+#[component]
+fn RootLayout() -> Element {
+	rsx! {
+		NavBar {}
+		Outlet::<Route> {}
+	}
 }
 
-#[server(GetServerData)]
-async fn get_server_data() -> Result<String, ServerFnError> {
-	Ok("Hello from the server!".to_string())
+#[component]
+fn NavBar() -> Element {
+	let route = use_route::<Route>();
+	rsx! {
+		"navbar yay"
+		br {}
+	}
 }

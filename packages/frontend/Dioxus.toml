@@ -12,7 +12,7 @@ reload_html = true
 watch_path = ["src", "../../target/dioxus/css.css"]
 
 [web.resource]
-style = ["css.css"]
+style = ["/css.css"]
 script = []
 
 [web.resource.dev]
