@@ -9,6 +9,7 @@ dioxus = { workspace = true, features = ["fullstack", "router"] }
 dioxus-logger = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+wiwi = { workspace = true, features = ["export-all-submodules"] }
 
 [features]
 default = []

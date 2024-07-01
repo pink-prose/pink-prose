@@ -37,3 +37,10 @@ features = ["derive"]
 
 [workspace.dependencies.tracing]
 version = "0.1.40"
+
+[workspace.dependencies.wiwi]
+git = "https://github.com/meadowsys/wiwi"
+rev = "9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978"
+
+[workspace.dependencies.wasm-bindgen]
+version = "0.2.92"

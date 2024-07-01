@@ -6,15 +6,18 @@
 	unused_variables
 )]
 
+use self::pages::Home;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use serde::{ Deserialize, Serialize };
 use tracing::{ Level, info };
 
+mod pages;
+
 #[derive(Clone, Debug, PartialEq, Routable, Serialize, Deserialize)]
 enum Route {
-	#[route("/")]
 	#[layout(RootLayout)]
+	#[route("/")]
 	Home {},
 	#[route("/signin")]
 	SignIn {}
@@ -30,14 +33,6 @@ fn main() {
 fn App() -> Element {
 	rsx! {
 		Router::<Route> {}
-	}
-}
-
-#[component]
-fn Home() -> Element {
-	rsx! {
-		"home page"
-		Link { to: "/signin", "go signin page" }
 	}
 }
 
