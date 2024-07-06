@@ -1,7 +1,7 @@
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
-	pink_prose_frontend::ssr_main().await
+	pink_prose::backend::main().await
 }
 
 #[cfg(not(feature = "ssr"))]

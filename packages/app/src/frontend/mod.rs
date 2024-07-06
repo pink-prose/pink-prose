@@ -1,4 +1,4 @@
-use super::App;
+use super::app::App;
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {

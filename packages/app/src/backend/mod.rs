@@ -1,4 +1,4 @@
-use super::App;
+use super::app::App;
 use actix_files::Files as ActixFiles;
 use actix_web::{ App as ActixApp, HttpServer };
 use actix_web::web::Data;
@@ -6,7 +6,7 @@ use anyhow::Result;
 use leptos::get_configuration;
 use leptos_actix::{ generate_route_list, LeptosRoutes };
 
-pub async fn ssr_main() -> Result<()> {
+pub async fn main() -> Result<()> {
 	let config = get_configuration(None)
 		.await
 		.expect("failed to get configuration");
