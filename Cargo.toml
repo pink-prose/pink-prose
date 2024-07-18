@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-	"packages/app"
+	"packages/app",
+	"packages/db"
 ]
 
 [profile.wasm-release]
@@ -54,6 +55,9 @@ features = ["derive"]
 [workspace.dependencies.surrealdb]
 git = "https://github.com/surrealdb/surrealdb"
 rev = "03bd9d37fb43204b9f787816f21c2ba781545b03"
+
+[workspace.dependencies.thiserror]
+version = "1.0.63"
 
 [workspace.dependencies.tracing]
 version = "0.1.40"
