@@ -21,7 +21,7 @@ pub fn provide_theme() {
 }
 
 pub fn use_theme() -> ThemeContext {
-	use_context().unwrap()
+	expect_context()
 }
 
 impl Deref for Theme {

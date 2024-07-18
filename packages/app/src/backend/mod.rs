@@ -8,6 +8,8 @@ use leptos_actix::{ generate_route_list, LeptosRoutes };
 use pink_prose_db::{ Db, DbNewParams };
 use std::sync::Arc;
 
+mod auth;
+
 type DataLeptosOptions = Data<LeptosOptions>;
 type DataDb = Data<Arc<Db>>;
 
@@ -35,6 +37,9 @@ pub async fn main() -> Result<()> {
 			// app shared state
 			.app_data(DataLeptosOptions::new(config.leptos_options.clone()))
 			.app_data(DataDb::new(Arc::clone(&db)))
+
+			// signin
+			.service(auth::discord::redirecter)
 
 			// static files (leptos and assets)
 			.service(ActixFiles::new("/-", &*format!("{site_root}/-")))

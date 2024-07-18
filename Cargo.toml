@@ -68,12 +68,15 @@ version = "1.0.63"
 [workspace.dependencies.tracing]
 version = "0.1.40"
 
+[workspace.dependencies.urlencoding]
+version = "2.1.3"
+
 [workspace.dependencies.web-sys]
 version = "0.3.69"
 
 [workspace.dependencies.wiwi]
 git = "https://github.com/meadowsys/wiwi"
-rev = "9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978"
+rev = "4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb"
 
 [workspace.dependencies.wasm-bindgen]
 version = "0.2.92"

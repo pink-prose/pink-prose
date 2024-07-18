@@ -2980,8 +2980,11 @@ dependencies = [
  "leptos_meta",
  "leptos_router",
  "pink-prose-db",
+ "serde",
+ "urlencoding",
  "wasm-bindgen",
  "web-sys",
+ "wiwi",
 ]
 
 [[package]]
@@ -5192,17 +5195,19 @@ dependencies = [
 
 [[package]]
 name = "wiwi"
-version = "0.9.0"
-source = "git+https://github.com/meadowsys/wiwi?rev=9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978#9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978"
+version = "0.10.0-dev"
+source = "git+https://github.com/meadowsys/wiwi?rev=4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb#4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb"
 dependencies = [
  "rand",
+ "rand_chacha",
+ "thiserror",
  "wiwiwiwiwi",
 ]
 
 [[package]]
 name = "wiwiwiwiwi"
-version = "0.9.0"
-source = "git+https://github.com/meadowsys/wiwi?rev=9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978#9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978"
+version = "0.10.0-dev"
+source = "git+https://github.com/meadowsys/wiwi?rev=4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb#4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb"
 dependencies = [
  "proc-macro2",
  "quote",
