@@ -2979,16 +2979,19 @@ dependencies = [
  "leptos_actix",
  "leptos_meta",
  "leptos_router",
- "surrealdb",
+ "pink-prose-db",
  "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
 name = "pink-prose-db"
 version = "0.1.0"
 dependencies = [
+ "parking_lot",
  "surrealdb",
  "thiserror",
+ "wiwi",
 ]
 
 [[package]]
@@ -5185,6 +5188,25 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "wiwi"
+version = "0.9.0"
+source = "git+https://github.com/meadowsys/wiwi?rev=9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978#9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978"
+dependencies = [
+ "rand",
+ "wiwiwiwiwi",
+]
+
+[[package]]
+name = "wiwiwiwiwi"
+version = "0.9.0"
+source = "git+https://github.com/meadowsys/wiwi?rev=9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978#9d0a6c3e0bf542e6899a7b113fd3b1d5cbf39978"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.68",
 ]
 
 [[package]]

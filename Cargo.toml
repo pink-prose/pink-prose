@@ -48,6 +48,12 @@ features = ["nightly"]
 version = "0.6.12"
 features = ["nightly"]
 
+[workspace.dependencies.parking_lot]
+version = "0.12.3"
+
+[workspace.dependencies.pink-prose-db]
+path = "packages/db"
+
 [workspace.dependencies.serde]
 version = "1.0.203"
 features = ["derive"]
@@ -61,6 +67,9 @@ version = "1.0.63"
 
 [workspace.dependencies.tracing]
 version = "0.1.40"
+
+[workspace.dependencies.web-sys]
+version = "0.3.69"
 
 [workspace.dependencies.wiwi]
 git = "https://github.com/meadowsys/wiwi"

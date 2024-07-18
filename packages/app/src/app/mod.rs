@@ -2,6 +2,7 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
+mod auth;
 mod theme;
 
 #[component]
@@ -46,6 +47,11 @@ pub fn App() -> impl IntoView {
 			>
 				<Routes>
 					<Route path="" view=HomePage />
+					<Route path="/signin" view=auth::Auth>
+						// TODO: put in a "global signin page" type of thing, that
+						// has the signin buttons etc
+						<Route path="discord" view=auth::discord::AuthDiscord />
+					</Route>
 					<Route path="/*any" view=NotFound />
 				</Routes>
 			</main>

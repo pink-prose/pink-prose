@@ -6,7 +6,9 @@ license = { workspace = true }
 publish = false
 
 [dependencies]
+parking_lot = { workspace = true }
 surrealdb = { workspace = true }
 thiserror = { workspace = true }
+wiwi = { workspace = true, features = ["id-unstable"] }
 
 [features]
