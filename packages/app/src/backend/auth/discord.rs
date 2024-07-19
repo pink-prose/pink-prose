@@ -12,7 +12,7 @@ pub async fn redirecter(params: Query<Params>) -> impl Responder {
 	// TODO: make this env or something
 	let url = "<omitted>";
 
-	let url = format!("{url}&state={}", urlencoding::encode(&params.state));
+	let url = format!("{url}&state={}", params.state);
 	HttpResponse::Found()
 		.insert_header(("location", &*url))
 		.body(())

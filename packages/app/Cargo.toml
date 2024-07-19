@@ -13,6 +13,7 @@ actix-files = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true }
 anyhow = { workspace = true }
 catppuccin = { workspace = true }
+gloo-net = { workspace = true }
 http = { workspace = true, optional = true }
 js-sys = { workspace = true }
 leptos = { workspace = true }
@@ -21,11 +22,12 @@ leptos_actix = { workspace = true, optional = true }
 leptos_router = { workspace = true }
 pink-prose-db = { workspace = true, optional = true }
 serde = { workspace = true }
-serde_urlencoded = { workspace = true }
+serde_json = { workspace = true }
+serde_qs = { workspace = true }
 wasm-bindgen = { workspace = true }
 urlencoding = { workspace = true }
 web-sys = { workspace = true, features = ["Storage", "Window"] }
-wiwi = { workspace = true, features = ["rand", "with-cloned", "z85"] }
+wiwi = { workspace = true, features = ["auth-unstable", "hex", "rand", "with-cloned", "z85"] }
 
 [features]
 hydrate = [

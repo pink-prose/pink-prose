@@ -1,14 +1,16 @@
+use gloo_net::http::Request;
 use js_sys::{ Function, Reflect };
 use leptos::*;
 use leptos_router::*;
-use serde::Deserialize;
+use serde::{ Deserialize, Serialize };
 use std::borrow::Cow;
 use wasm_bindgen::{ JsCast as _, JsValue, UnwrapThrowExt as _ };
 use wasm_bindgen::closure::Closure;
 use web_sys::{ AddEventListenerOptions, MessageEvent, window };
 use wiwi::rand::ThreadLocalChaCha20Rng;
 use wiwi::with_cloned;
-use wiwi::z85::encode_z85;
+use wiwi::hex::{ decode_hex, encode_hex };
+use wiwi::z85::{ decode_z85, encode_z85 };
 
 const DISCORD_AUTH_STATE_SESSION_STORAGE_KEY: &str = "discord-auth-state";
 
@@ -26,13 +28,14 @@ pub fn Signin() -> impl IntoView {
 
 		if cb.is_none() {
 			// TODO: lazy initialisation, is there better way to do this? ~vt
-			cb = Some(Closure::new(|event: MessageEvent| {
-				logging::log!("was I ever called??");
-				web_sys::window()
+			cb = Some(Closure::new(with_cloned! { window in move |event: MessageEvent| {
+				// stuff is expected to come as a query string already
+				let stuff = event.data().as_string().unwrap_throw();
+				let url = format!("/signin/return?{stuff}");
+				window.location()
+					.set_href(&url)
 					.unwrap_throw()
-					.alert_with_message(&format!("aaaa {:?}", event.data()))
-					.unwrap_throw();
-			}));
+			}}));
 		}
 
 		if let Some(_popup) = popup {
@@ -58,8 +61,8 @@ pub fn Signin() -> impl IntoView {
 		let mut state_bytes = vec![0; 32];
 
 		ThreadLocalChaCha20Rng.fill(&mut state_bytes);
-		let state = encode_z85(&state_bytes);
-		let url = format!("/signin/redir/discord?state={}", urlencoding::encode(&state));
+		let state = encode_hex(&state_bytes);
+		let url = format!("/signin/redir/discord?state={state}");
 
 		let session_storage = window()
 			.unwrap_throw()
@@ -67,7 +70,7 @@ pub fn Signin() -> impl IntoView {
 			.unwrap_throw()
 			.unwrap_throw();
 
-		session_storage.set_item(DISCORD_AUTH_STATE_SESSION_STORAGE_KEY, &state).unwrap_throw();
+		session_storage.set_item(DISCORD_AUTH_STATE_SESSION_STORAGE_KEY, &encode_z85(&state_bytes)).unwrap_throw();
 		open_window(&url);
 	};
 
@@ -80,30 +83,62 @@ pub fn Signin() -> impl IntoView {
 
 #[component]
 pub fn ReturnDiscord() -> impl IntoView {
-	#[derive(Deserialize)]
-	struct QueryParams<'h> {
-		code: &'h str,
-		state: &'h str
-	}
+	// TODO: need an error page that's like "error auth failed pls try again"
+	// and perhaps server side logging, with an issue ID that can be submitted to us if they want I guess?
 
-	create_effect(|_| {
-		let window = window().unwrap_throw();
-		let opener = window.opener().unwrap_throw();
-		let location = window.location();
+	create_resource(|| {}, |_| async {
+		#[inline]
+		async fn finalise() -> Option<()> {
+			let window = window()?;
+			let opener = window.opener().ok()?;
+			if !opener.is_truthy() { return None }
+			let location = window.location();
+			let session_storage = window.session_storage().ok()??;
 
-		if !opener.is_truthy() { return }
+			let stored_state = session_storage
+				.get_item(DISCORD_AUTH_STATE_SESSION_STORAGE_KEY)
+				.ok()??;
+			let stored_state = decode_z85(stored_state.as_bytes()).ok()?;
 
-		let query_params = location.search().unwrap_throw();
+			#[derive(Deserialize, Serialize)]
+			struct QueryParams<'h> {
+				code: Cow<'h, str>,
+				state: Cow<'h, str>
+			}
 
-		let post_msg = Reflect::get(&opener, &JsValue::from_str("postMessage")).unwrap_throw();
+			let query_params_string = location.search().ok()?;
+			let query_params = serde_qs::from_str::<QueryParams>(&query_params_string[1..]).ok()?;
 
-		post_msg
-			.dyn_ref::<Function>()
-			.unwrap_throw()
-			.call1(&opener, &JsValue::from_str(&query_params[1..]))
-			.unwrap_throw();
+			let state = decode_hex(query_params.state.as_bytes()).ok()?;
+			if stored_state != state { return None }
 
-		window.close().unwrap_throw();
+			let res = Request::post("/signin/submit/discord")
+				.header("content-type", "text/plain")
+				.body(&*query_params.code)
+				.ok()?
+				.send()
+				.await
+				.ok()?;
+			if res.status() != 200 { return None }
+			// TODO: determine the response structure (seperate model crate???)
+			// retrieve key, save it,
+			// res.json().await;
+
+			logging::log!("we've made it to, uh, here?");
+			Some(())
+		}
+
+		let _do_something_with_the_option = finalise().await;
+
+		// let post_msg = Reflect::get(&opener, &JsValue::from_str("postMessage")).unwrap_throw();
+
+		// post_msg
+		// 	.dyn_ref::<Function>()
+		// 	.unwrap_throw()
+		// 	.call1(&opener, &JsValue::from_str(&query_params))
+		// 	.unwrap_throw();
+
+		// window.close().unwrap_throw();
 	});
 
 	view! {

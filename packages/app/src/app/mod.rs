@@ -24,6 +24,7 @@ pub fn App() -> impl IntoView {
 			>
 				<Routes>
 					<Route path="" view=HomePage />
+					// TODO: need an error boundary for the return pages
 					<Route path="/signin" view=|| view! { <Outlet /> }>
 						<Route path="" view=auth::Signin />
 						<Route path="return/discord" view=auth::ReturnDiscord />
