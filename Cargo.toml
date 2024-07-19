@@ -2,7 +2,8 @@
 resolver = "2"
 members = [
 	"packages/app",
-	"packages/db"
+	"packages/db",
+	"packages/model"
 ]
 
 [profile.wasm-release]
@@ -60,8 +61,11 @@ version = "0.12.3"
 [workspace.dependencies.pink-prose-db]
 path = "packages/db"
 
+[workspace.dependencies.pink-prose-model]
+path = "packages/model"
+
 [workspace.dependencies.serde]
-version = "1.0.203"
+version = "1.0.204"
 features = ["derive"]
 
 [workspace.dependencies.serde_json]
@@ -88,7 +92,8 @@ version = "0.3.69"
 
 [workspace.dependencies.wiwi]
 git = "https://github.com/meadowsys/wiwi"
-rev = "d48b45b9c4e656bb92006560f6a9c823b5fec236"
+rev = "63718c451341b6700c62aa19c4d9d88680904711"
+features = ["auth-unstable", "hex", "rand", "serde", "with-cloned", "z85"]
 
 [workspace.dependencies.wasm-bindgen]
 version = "0.2.92"

@@ -2,6 +2,7 @@ use gloo_net::http::Request;
 use js_sys::{ Function, Reflect };
 use leptos::*;
 use leptos_router::*;
+use pink_prose_model::DiscordSignupFinalResponse;
 use serde::{ Deserialize, Serialize };
 use std::borrow::Cow;
 use wasm_bindgen::{ JsCast as _, JsValue, UnwrapThrowExt as _ };
@@ -17,6 +18,7 @@ const DISCORD_AUTH_STATE_SESSION_STORAGE_KEY: &str = "discord-auth-state";
 #[component]
 pub fn Signin() -> impl IntoView {
 	let mut cb = None::<Closure<dyn Fn(MessageEvent)>>;
+	let (msg, set_msg) = create_signal(None);
 
 	let mut open_window = move |url: &'_ str| {
 		let window = window().unwrap_throw();
@@ -28,13 +30,15 @@ pub fn Signin() -> impl IntoView {
 
 		if cb.is_none() {
 			// TODO: lazy initialisation, is there better way to do this? ~vt
-			cb = Some(Closure::new(with_cloned! { window in move |event: MessageEvent| {
+			cb = Some(Closure::new(with_cloned! { _ in move |event: MessageEvent| {
 				// stuff is expected to come as a query string already
 				let stuff = event.data().as_string().unwrap_throw();
-				let url = format!("/signin/return?{stuff}");
-				window.location()
-					.set_href(&url)
-					.unwrap_throw()
+				set_msg(Some(stuff));
+
+				// let url = format!("/signin/return?{stuff}");
+				// window.location()
+				// 	.set_href(&url)
+				// 	.unwrap_throw()
 			}}));
 		}
 
@@ -60,7 +64,7 @@ pub fn Signin() -> impl IntoView {
 	let trigger_discord = move |_| {
 		let mut state_bytes = vec![0; 32];
 
-		ThreadLocalChaCha20Rng.fill(&mut state_bytes);
+		ThreadLocalChaCha20Rng::fill(&mut state_bytes);
 		let state = encode_hex(&state_bytes);
 		let url = format!("/signin/redir/discord?state={state}");
 
@@ -78,6 +82,13 @@ pub fn Signin() -> impl IntoView {
 		"the signin page"
 		<br />
 		<button on:click=trigger_discord>"The Discord Signin Button™"</button>
+		<br />
+
+		{ move || if let Some(msg) = msg() {
+			msg.clone()
+		} else {
+			"still going / not started".into()
+		} }
 	}
 }
 
@@ -86,7 +97,7 @@ pub fn ReturnDiscord() -> impl IntoView {
 	// TODO: need an error page that's like "error auth failed pls try again"
 	// and perhaps server side logging, with an issue ID that can be submitted to us if they want I guess?
 
-	create_resource(|| {}, |_| async {
+	create_local_resource(|| {}, |_| async {
 		#[inline]
 		async fn finalise() -> Option<()> {
 			let window = window()?;
@@ -112,6 +123,7 @@ pub fn ReturnDiscord() -> impl IntoView {
 			let state = decode_hex(query_params.state.as_bytes()).ok()?;
 			if stored_state != state { return None }
 
+			// TODO: url here (not finalised yet I guess)
 			let res = Request::post("/signin/submit/discord")
 				.header("content-type", "text/plain")
 				.body(&*query_params.code)
@@ -120,25 +132,45 @@ pub fn ReturnDiscord() -> impl IntoView {
 				.await
 				.ok()?;
 			if res.status() != 200 { return None }
-			// TODO: determine the response structure (seperate model crate???)
-			// retrieve key, save it,
-			// res.json().await;
 
-			logging::log!("we've made it to, uh, here?");
+			let body = res
+				.json::<DiscordSignupFinalResponse>()
+				.await
+				.ok()?;
+
+			let DiscordSignupFinalResponse {
+				secret_key
+			} = body;
+
+			// TODO: store better? maybe?
+			// also hardcoded "secret-key" store key, should refactor out to constant or something
+			window.local_storage()
+				.ok()??
+				.set_item(
+					"secret-key",
+					&encode_z85(&secret_key.to_bytes().unwrap_throw())
+				)
+				.ok()?;
+
 			Some(())
 		}
 
-		let _do_something_with_the_option = finalise().await;
+		let msg = match finalise().await {
+			Some(_) => { "ok" }
+			None => { "err" }
+		};
 
-		// let post_msg = Reflect::get(&opener, &JsValue::from_str("postMessage")).unwrap_throw();
+		let opener = window().unwrap_throw().opener().unwrap_throw();
 
-		// post_msg
-		// 	.dyn_ref::<Function>()
-		// 	.unwrap_throw()
-		// 	.call1(&opener, &JsValue::from_str(&query_params))
-		// 	.unwrap_throw();
+		let post_msg = Reflect::get(&opener, &JsValue::from_str("postMessage")).unwrap_throw();
 
-		// window.close().unwrap_throw();
+		post_msg
+			.dyn_ref::<Function>()
+			.unwrap_throw()
+			.call1(&opener, &JsValue::from_str(msg))
+			.unwrap_throw();
+
+		window().unwrap_throw().close().unwrap_throw();
 	});
 
 	view! {

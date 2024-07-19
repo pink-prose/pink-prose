@@ -40,6 +40,7 @@ pub async fn main() -> Result<()> {
 
 			// signin
 			.service(auth::discord::redirecter)
+			.service(auth::discord::submitter)
 
 			// static files (leptos and assets)
 			.service(ActixFiles::new("/-", &*format!("{site_root}/-")))
