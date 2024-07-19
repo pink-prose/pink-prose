@@ -33,6 +33,9 @@ version = "2.4.0"
 [workspace.dependencies.http]
 version = "1.1.0"
 
+[workspace.dependencies.js-sys]
+version = "0.3.69"
+
 [workspace.dependencies.leptos]
 version = "0.6.12"
 features = ["nightly"]
@@ -58,6 +61,9 @@ path = "packages/db"
 version = "1.0.203"
 features = ["derive"]
 
+[workspace.dependencies.serde_urlencoded]
+version = "0.7.1"
+
 [workspace.dependencies.surrealdb]
 git = "https://github.com/surrealdb/surrealdb"
 rev = "03bd9d37fb43204b9f787816f21c2ba781545b03"
@@ -76,7 +82,7 @@ version = "0.3.69"
 
 [workspace.dependencies.wiwi]
 git = "https://github.com/meadowsys/wiwi"
-rev = "4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb"
+rev = "d48b45b9c4e656bb92006560f6a9c823b5fec236"
 
 [workspace.dependencies.wasm-bindgen]
 version = "0.2.92"

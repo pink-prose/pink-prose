@@ -17,15 +17,17 @@ pub fn App() -> impl IntoView {
 		<Stylesheet id="leptos" href="/-/pink-prose.css" />
 		<Title text="Welcome to Leptos" />
 
-		<Router>
+		<Router trailing_slash=TrailingSlash::Redirect>
 			<main
 				// style=("--cc-rosewater", move || theme().colors.rosewater.hex.to_string())
 				// ... omitted rest of attrs since I'm planning to redo theme stuff anyways ~vt
 			>
 				<Routes>
 					<Route path="" view=HomePage />
-					<Route path="/auth" view=auth::Auth />
-
+					<Route path="/signin" view=|| view! { <Outlet /> }>
+						<Route path="" view=auth::Signin />
+						<Route path="return/discord" view=auth::ReturnDiscord />
+					</Route>
 					<Route path="/*any" view=not_found::NotFound />
 				</Routes>
 			</main>

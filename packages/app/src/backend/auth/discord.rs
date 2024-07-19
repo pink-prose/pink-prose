@@ -4,24 +4,16 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct Params {
-	state: String,
-	code: Option<String>
+	state: String
 }
 
-#[get("/auth/discord")]
+#[get("/signin/redir/discord")]
 pub async fn redirecter(params: Query<Params>) -> impl Responder {
-	// // TODO: make this env or something
+	// TODO: make this env or something
+	let url = "<omitted>";
 
-	if let Some(ref code) = params.code {
-		HttpResponse::Ok()
-			.content_type("text/plain")
-			.body(format!("aha! uw code is {}", code))
-	} else {
-		let url = "<omitted>";
-
-		let url = format!("{url}&state={}", urlencoding::encode(&params.state));
-		HttpResponse::Found()
-			.insert_header(("location", &*url))
-			.body(())
-	}
+	let url = format!("{url}&state={}", urlencoding::encode(&params.state));
+	HttpResponse::Found()
+		.insert_header(("location", &*url))
+		.body(())
 }

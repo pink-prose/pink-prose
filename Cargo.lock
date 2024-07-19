@@ -2975,12 +2975,14 @@ dependencies = [
  "anyhow",
  "catppuccin",
  "http 1.1.0",
+ "js-sys",
  "leptos",
  "leptos_actix",
  "leptos_meta",
  "leptos_router",
  "pink-prose-db",
  "serde",
+ "serde_urlencoded",
  "urlencoding",
  "wasm-bindgen",
  "web-sys",
@@ -5196,7 +5198,7 @@ dependencies = [
 [[package]]
 name = "wiwi"
 version = "0.10.0-dev"
-source = "git+https://github.com/meadowsys/wiwi?rev=4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb#4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb"
+source = "git+https://github.com/meadowsys/wiwi?rev=d48b45b9c4e656bb92006560f6a9c823b5fec236#d48b45b9c4e656bb92006560f6a9c823b5fec236"
 dependencies = [
  "rand",
  "rand_chacha",
@@ -5207,7 +5209,7 @@ dependencies = [
 [[package]]
 name = "wiwiwiwiwi"
 version = "0.10.0-dev"
-source = "git+https://github.com/meadowsys/wiwi?rev=4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb#4e3172bc650c2ef7991f44f5e8052cd44cb5ebdb"
+source = "git+https://github.com/meadowsys/wiwi?rev=d48b45b9c4e656bb92006560f6a9c823b5fec236#d48b45b9c4e656bb92006560f6a9c823b5fec236"
 dependencies = [
  "proc-macro2",
  "quote",
