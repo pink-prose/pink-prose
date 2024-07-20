@@ -6,18 +6,24 @@ use anyhow::Result;
 use leptos::{ get_configuration, LeptosOptions };
 use leptos_actix::{ generate_route_list, LeptosRoutes };
 use pink_prose_db::{ Db, DbNewParams };
+use serde::Deserialize;
 use std::sync::Arc;
 
 mod auth;
 
-type DataLeptosOptions = Data<LeptosOptions>;
+type DataLeptosCfg = Data<LeptosOptions>;
 type DataDb = Data<Arc<Db>>;
+type DataPinkProseCfg = Data<PinkProseCfg>;
 
 pub async fn main() -> Result<()> {
-	let config = get_configuration(None)
+	#[cfg(debug_assertions)]
+	let _ = dotenvy::dotenv();
+
+	let pp_cfg = envy::from_env::<PinkProseCfg>().unwrap();
+	let leptos_cfg = get_configuration(None)
 		.await
 		.expect("failed to get configuration");
-	let bind_addr = config.leptos_options.site_addr;
+	let bind_addr = leptos_cfg.leptos_options.site_addr;
 	let routes = generate_route_list(App);
 	eprintln!("listening on {bind_addr}");
 
@@ -31,11 +37,12 @@ pub async fn main() -> Result<()> {
 	let db = Arc::new(db);
 
 	let app_factory = move || {
-		let site_root = &*config.leptos_options.site_root;
+		let site_root = &*leptos_cfg.leptos_options.site_root;
 
 		ActixApp::new()
 			// app shared state
-			.app_data(DataLeptosOptions::new(config.leptos_options.clone()))
+			.app_data(DataPinkProseCfg::new(pp_cfg.clone()))
+			.app_data(DataLeptosCfg::new(leptos_cfg.leptos_options.clone()))
 			.app_data(DataDb::new(Arc::clone(&db)))
 
 			// signin
@@ -48,7 +55,7 @@ pub async fn main() -> Result<()> {
 			// TODO: favicon?
 
 			// ssr
-			.leptos_routes(config.leptos_options.clone(), routes.clone(), App)
+			.leptos_routes(leptos_cfg.leptos_options.clone(), routes.clone(), App)
 	};
 
 	HttpServer::new(app_factory)
@@ -56,4 +63,10 @@ pub async fn main() -> Result<()> {
 		.run()
 		.await
 		.map_err(Into::into)
+}
+
+#[derive(Clone, Deserialize)]
+struct PinkProseCfg {
+	#[serde(rename = "pp_discord_url")]
+	discord_url: String
 }

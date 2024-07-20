@@ -1,3 +1,4 @@
+use crate::backend::DataPinkProseCfg;
 use actix_web::{ get, post, HttpResponse, Responder };
 use actix_web::web::{ Json, Query };
 use pink_prose_model::DiscordSignupFinalResponse;
@@ -11,11 +12,16 @@ struct Params {
 }
 
 #[get("/signin/redir/discord")]
-pub async fn redirecter(params: Query<Params>) -> impl Responder {
-	// TODO: make this env or something
-	let url = "<omitted>";
+pub async fn redirecter(
+	query_params: Query<Params>,
+	pp_cfg: DataPinkProseCfg
+) -> impl Responder {
+	let url = format!(
+		"{url}&state={state}",
+		url = pp_cfg.discord_url,
+		state = urlencoding::encode(&query_params.state)
+	);
 
-	let url = format!("{url}&state={}", params.state);
 	HttpResponse::Found()
 		.insert_header(("location", &*url))
 		.body(())
