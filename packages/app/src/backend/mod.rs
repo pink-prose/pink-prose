@@ -25,8 +25,8 @@ pub async fn main() -> Result<()> {
 		addr: "localhost:8000",
 		// TODO: this needs to read from an env var
 		password: "root",
-		ns: "pp",
-		db: "pp"
+		ns: "pink-prose",
+		db: "pink-prose"
 	}).await?;
 	let db = Arc::new(db);
 
