@@ -1,5 +1,6 @@
 [package]
 name = "pink-prose-model"
+description = "Models for Pink Prose API"
 version = { workspace = true }
 edition = { workspace = true }
 repository = { workspace = true }
