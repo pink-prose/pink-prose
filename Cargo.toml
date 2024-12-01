@@ -1,14 +1,13 @@
+[workspace]
+members = [
+	"packages/pink-prose"
+]
+
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/pink-prose/pink-prose"
 license = "AGPL-3.0-only"
 
-[workspace.dependencies]
-
-[package]
-name = "pink-prose"
-version = { workspace = true }
-edition = { workspace = true }
-repository = { workspace = true }
-license = { workspace = true }
+[workspace.dependencies.bon]
+version = "3.1.1"
