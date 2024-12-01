@@ -1,0 +1,75 @@
+name: test
+on:
+  workflow_call:
+    inputs:
+      fail-fast:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      fail-fast:
+        type: boolean
+        default: false
+
+env:
+  RUSTFLAGS: "-Cinstrument-coverage -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code"
+  grcov-version: v0.8.20
+
+jobs:
+  test:
+    runs-on: ${{ matrix.runs-on }}
+
+    strategy:
+      fail-fast: ${{ inputs.fail-fast }}
+      matrix:
+        runs-on:
+        - macos-14
+        - macos-15
+        - ubuntu-24.04
+        release:
+        - true
+        - false
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+    - name: setup rust
+      run: rustc --version
+
+    - name: build
+      run: cargo build --verbose ${{ matrix.release && '--release' || '' }}
+
+    - name: test
+      run: cargo test --verbose ${{ matrix.release && '--release' || '' }}
+      env:
+        CARGO_INCREMENTAL: "0"
+        LLVM_PROFILE_FILE: "target/coverage/test-%m-%p.profraw"
+
+    - name: fetch/run grcov
+      run: |
+        platform=$(uname)
+        case $platform in
+          Darwin)
+            # macos-14/macos-15 runners run on apple silicon, so aarch64
+            curl -Lo grcov.bz2 https://github.com/mozilla/grcov/releases/download/${{ env.grcov-version }}/grcov-aarch64-apple-darwin.tar.bz2
+            ;;
+          Linux)
+            curl -Lo grcov.bz2 https://github.com/mozilla/grcov/releases/download/${{ env.grcov-version }}/grcov-x86_64-unknown-linux-musl.tar.bz2
+            ;;
+          *)
+            echo weird
+            exit 1
+            ;;
+        esac
+
+        tar xvf grcov.bz2
+        rm grcov.bz2
+
+        ./grcov . -s . -t lcov --binary-path ./target/${{ matrix.release && 'release' || 'debug' }}/ --branch --ignore-not-existing -o ./target/coverage/tests.lcov
+
+    - name: upload to codecov
+      uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5.0.7
+      with:
+        files: target/coverage/*.lcov
+        token: ${{ secrets.CODECOV_TOKEN }}
