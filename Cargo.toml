@@ -1,6 +1,7 @@
 [workspace]
 members = [
-	"packages/pink-prose"
+	"packages/pink-prose",
+	"packages/pink-prose-model"
 ]
 
 [workspace.package]
