@@ -41,10 +41,9 @@ jobs:
       run: cargo build --verbose ${{ matrix.release && '--release' || '' }}
 
     - name: test
-      run: cargo test --verbose ${{ matrix.release && '--release' || '' }}
+      run: LLVM_PROFILE_FILE="$(pwd)/target/coverage/test-%m-%p.profraw" cargo test --verbose ${{ matrix.release && '--release' || '' }}
       env:
         CARGO_INCREMENTAL: "0"
-        LLVM_PROFILE_FILE: "target/coverage/test-%m-%p.profraw"
 
     - name: fetch/run grcov
       run: |
