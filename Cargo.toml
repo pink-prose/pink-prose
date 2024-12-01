@@ -1,4 +1,5 @@
 [workspace]
+resolver = "3"
 members = [
 	"packages/pink-prose",
 	"packages/pink-prose-model"
@@ -6,7 +7,7 @@ members = [
 
 [workspace.package]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/pink-prose/pink-prose"
 license = "AGPL-3.0-only"
 
