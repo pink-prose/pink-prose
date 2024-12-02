@@ -8,5 +8,14 @@ license = { workspace = true }
 rust-version = { workspace = true }
 publish = false
 
+[dependencies]
+actix-files = { workspace = true }
+actix-web = { workspace = true }
+anyhow = { workspace = true }
+leptos = { workspace = true, features = ["ssr"] }
+leptos-actix = { workspace = true }
+pink-prose-frontend = { workspace = true, features = ["backend"] }
+wiwi = { workspace = true }
+
 [lints]
 workspace = true

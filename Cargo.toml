@@ -4,6 +4,7 @@ members = [
 	"packages/pink-prose",
 	"packages/pink-prose-backend",
 	"packages/pink-prose-frontend",
+	"packages/pink-prose-leptos",
 	"packages/pink-prose-model"
 ]
 
@@ -14,12 +15,22 @@ repository = "https://github.com/pink-prose/pink-prose"
 license = "AGPL-3.0-only"
 rust-version = "1.85"
 
+[workspace.dependencies]
+pink-prose = { path = "packages/pink-prose" }
+pink-prose-backend = { path = "packages/pink-prose-backend" }
+pink-prose-frontend = { path = "packages/pink-prose-frontend" }
+pink-prose-leptos = { path = "packages/pink-prose-leptos" }
+pink-prose-model = { path = "packages/pink-prose-model" }
+
 [workspace.dependencies.actix-files]
 version = "0.6.6"
 
 [workspace.dependencies.actix-web]
 version = "4.9.0"
 features = ["macros"]
+
+[workspace.dependencies.anyhow]
+version = "1.0.93"
 
 [workspace.dependencies.bon]
 version = "3.1.1"
@@ -49,7 +60,11 @@ version = "0.7.0"
 features = ["nightly"]
 
 [workspace.dependencies.wasm-bindgen]
-version = "0.2.97"
+version = "=0.2.96"
+
+[workspace.dependencies.wiwi]
+git = "https://github.com/meadowsys/wiwi"
+rev = "ef1a6712e7b6f12b65057109389b4a517df812b6"
 
 [workspace.lints.rust]
 # while we are still in development
@@ -57,3 +72,18 @@ dead_code = "allow"
 unused_imports = "allow"
 unused_mut = "allow"
 unused_variables = "allow"
+
+[profile.dev]
+lto = "off"
+incremental = true
+codegen-units = 1024
+
+[profile.release]
+lto = "fat"
+incremental = false
+codegen-units = 1
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+panic = "abort"

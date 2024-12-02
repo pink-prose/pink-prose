@@ -1,11 +1,29 @@
-#[cfg(feature = "server")]
+#[cfg(feature = "backend")]
 use actix_web::http::StatusCode;
 use leptos::prelude::*;
-#[cfg(feature = "server")]
+#[cfg(feature = "backend")]
 use leptos_actix::ResponseOptions;
-use leptos_meta::{ provide_meta_context, Stylesheet, StylesheetProps, Title };
+use leptos_meta::{ provide_meta_context, MetaTags, Stylesheet, StylesheetProps, Title };
 use leptos_router::path;
 use leptos_router::components::{ Route, Router, Routes };
+
+pub fn shell(leptos_options: &LeptosOptions) -> impl IntoView + use<> {
+	view! {
+		<!DOCTYPE html>
+		<html>
+			<head>
+				<meta charset = "utf-8" />
+				<meta name = "viewport" content = "width=device-width, initial-scale=1" />
+				<AutoReload options = leptos_options.clone() />
+				<HydrationScripts options = leptos_options.clone() />
+				<MetaTags />
+			</head>
+			<body>
+				<App />
+			</body>
+		</html>
+	}
+}
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -42,7 +60,7 @@ fn HomePage() -> impl IntoView {
 
 #[component]
 fn NotFound() -> impl IntoView {
-	#[cfg(feature = "server")] {
+	#[cfg(feature = "backend")] {
 		expect_context::<ResponseOptions>()
 			.set_status(StatusCode::NOT_FOUND);
 	}

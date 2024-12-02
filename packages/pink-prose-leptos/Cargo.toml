@@ -1,0 +1,51 @@
+[package]
+name = "pink-prose-leptos"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+rust-version = { workspace = true }
+publish = false
+
+[dependencies]
+anyhow = { workspace = true, optional = true }
+actix-web = { workspace = true, optional = true }
+pink-prose-backend = { workspace = true, optional = true }
+pink-prose-frontend = { workspace = true, optional = true }
+leptos = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+
+[features]
+backend = [
+	"dep:actix-web",
+	"dep:anyhow",
+	"dep:pink-prose-backend",
+	"pink-prose-frontend/backend"
+]
+frontend = [
+	"dep:leptos",
+	"dep:pink-prose-frontend",
+	"dep:wasm-bindgen",
+	"pink-prose-frontend/frontend"
+]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[lints]
+workspace = true
+
+[package.metadata.leptos]
+site-root = "target/site-build"
+site-pkg-dir = "-"
+style-file = "../../target/unoptimised.css"
+assets-dir = "../../assets"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+browserquery = "supports wasm"
+# The environment Leptos will run in, usually either "DEV" or "PROD"
+# ?????
+env = "DEV"
+bin-features = ["backend"]
+lib-features = ["frontend"]
+lib-profile-release = "wasm-release"
