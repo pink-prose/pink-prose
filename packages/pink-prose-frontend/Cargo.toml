@@ -1,0 +1,36 @@
+[package]
+name = "pink-prose-frontend"
+description = "Pink Prose web frontend"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+rust-version = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# actix-files = { workspace = true, optional = true }
+actix-web = { workspace = true, optional = true }
+bon = { workspace = true }
+# console-error-panic-hook = { workspace = true, optional = true }
+# http = { workspace = true, optional = true }
+leptos = { workspace = true }
+leptos-actix = { workspace = true, optional = true }
+leptos-meta = { workspace = true }
+leptos-router = { workspace = true }
+# wasm-bindgen = { workspace = true, optional = true }
+
+[lints]
+workspace = true
+
+[features]
+default = ["server"]
+server = [
+	"dep:actix-web",
+	"dep:leptos-actix",
+	"leptos/ssr",
+	"leptos-meta/ssr",
+	"leptos-router/ssr"
+]

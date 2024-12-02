@@ -2,6 +2,8 @@
 resolver = "3"
 members = [
 	"packages/pink-prose",
+	"packages/pink-prose-backend",
+	"packages/pink-prose-frontend",
 	"packages/pink-prose-model"
 ]
 
@@ -12,5 +14,46 @@ repository = "https://github.com/pink-prose/pink-prose"
 license = "AGPL-3.0-only"
 rust-version = "1.85"
 
+[workspace.dependencies.actix-files]
+version = "0.6.6"
+
+[workspace.dependencies.actix-web]
+version = "4.9.0"
+features = ["macros"]
+
 [workspace.dependencies.bon]
 version = "3.1.1"
+
+[workspace.dependencies.console-error-panic-hook]
+package = "console_error_panic_hook"
+version = "0.1.7"
+
+[workspace.dependencies.http]
+version = "1.1.0"
+
+[workspace.dependencies.leptos]
+version = "0.7.0"
+features = ["nightly"]
+
+[workspace.dependencies.leptos-actix]
+package = "leptos_actix"
+version = "0.7.0"
+
+[workspace.dependencies.leptos-meta]
+package = "leptos_meta"
+version = "0.7.0"
+
+[workspace.dependencies.leptos-router]
+package = "leptos_router"
+version = "0.7.0"
+features = ["nightly"]
+
+[workspace.dependencies.wasm-bindgen]
+version = "0.2.97"
+
+[workspace.lints.rust]
+# while we are still in development
+dead_code = "allow"
+unused_imports = "allow"
+unused_mut = "allow"
+unused_variables = "allow"

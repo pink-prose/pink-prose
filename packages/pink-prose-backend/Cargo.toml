@@ -1,6 +1,6 @@
 [package]
-name = "pink-prose"
-description = "APIs for interacting with Pink Prose"
+name = "pink-prose-backend"
+description = "Pink Prose backend"
 version = { workspace = true }
 edition = { workspace = true }
 repository = { workspace = true }
